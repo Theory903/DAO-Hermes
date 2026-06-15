@@ -2,18 +2,97 @@
   <img src="assets/banner.png" alt="Hermes Agent" width="100%">
 </p>
 
-# Hermes Agent ☤
+# DAO OS — powered by Hermes ☤
+
+<p align="center">
+  <strong>AI-native company operating system</strong> · execution by <a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a>
+</p>
+
+<p align="center">
+  <a href="../docs/PRODUCT-OVERVIEW.md"><img src="https://img.shields.io/badge/Product-DAO%20OS-111111?style=for-the-badge" alt="DAO OS"></a>
+  <a href="../docs/README.md"><img src="https://img.shields.io/badge/Docs-monorepo%20docs-FFD700?style=for-the-badge" alt="Documentation"></a>
+  <a href="DAO/README.md"><img src="https://img.shields.io/badge/Code-DAO%20company%20layer-2ea043?style=for-the-badge" alt="DAO layer"></a>
+  <a href="https://github.com/NousResearch/hermes-agent/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
+</p>
+
+This directory is a **fork of [Hermes Agent](https://github.com/NousResearch/hermes-agent)** — the self-improving agent runtime from [Nous Research](https://nousresearch.com). In the Nexus cortex monorepo it is the **execution backbone for [DAO OS](../docs/PRODUCT-OVERVIEW.md)**: one human (**Board**) runs a virtual company through **Jarvis** (AI Lead), with shared **Space Drive**, **Research Memory / Trace Git**, and department Workers that delegate through Hermes tools — not a chatbot wrapper.
+
+| Concept | What it is |
+|---------|------------|
+| **Space** | One company instance (tenant) — isolated Postgres RLS + per-Space `HERMES_HOME` |
+| **AI Lead (Jarvis)** | Supervisor you chat with; delegates to department Leads |
+| **DAO/** | Company layer — Drive, org, HITL, canvas, brain (`mount_DAO()` at `/api/v1`) |
+| **Hermes** | Agent loop, 40+ tools, MCP, cron, gateway, skills, session SQLite |
+
+**Product positioning:** *Never do the same work twice.* Organizational memory compounds; Hermes executes.
+
+### Repository layout (this fork)
+
+```text
+hermes-agent/
+├── DAO/                 # Company layer (Spaces, Drive, Jarvis, Research Memory, …)
+├── DAO_cli/             # `DAO api`, `DAO worker` CLI
+├── apps/
+│   ├── DAO-desktop/     # Native product shell (Electron + Python sidecar) ← ship this
+│   └── desktop/         # Upstream Hermes desktop — reference only
+├── agent/ tools/ gateway/ cron/   # Hermes execution engine
+├── tui_gateway/ws.py    # WebSocket JSON-RPC (session.*, prompt.submit)
+└── hermes_cli/web_server.py       # FastAPI entry — mounts DAO when enabled
+```
+
+Do **not** extend `web/` or `apps/desktop/` for DAO product features. Native shell = `apps/DAO-desktop/`; web admin = `../apps/DAO-web/`. See [../docs/DESKTOP-APP-PLAN.md](../docs/DESKTOP-APP-PLAN.md).
+
+### Quick start (DAO developers)
+
+```bash
+# From monorepo root
+docker compose -f infra/docker-compose.yml up -d postgres
+./infra/migrate.sh
+
+cd hermes-agent
+uv sync --extra DAO
+export DAO_API_ENABLED=1 DATABASE_URL=postgresql://DAO:DAO@localhost:5433/DAO JWT_SECRET=dev-change-me
+uv run DAO api --reload --port 9119
+```
+
+**Desktop (recommended):** from repo root, `./scripts/dev-desktop.sh` — Postgres, migrate, API sidecar, and Electron.
+
+| Surface | Command / URL |
+|---------|----------------|
+| DAO API | http://127.0.0.1:9119/api/v1/health |
+| DAO OS Desktop | `npm run dev:DAO-desktop` from `hermes-agent/` |
+| DAO-web (VOID UI) | `pnpm dev` in `../apps/DAO-web/` → http://localhost:3000 |
+
+Full guide: [../docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md) · Company layer: [DAO/README.md](DAO/README.md) · Architecture: [../ARCHITECTURE.md](../ARCHITECTURE.md)
+
+### DAO documentation (monorepo)
+
+| Doc | Purpose |
+|-----|---------|
+| [PRODUCT-OVERVIEW.md](../docs/PRODUCT-OVERVIEW.md) | Complete product story |
+| [PRD.md](../docs/PRD.md) | v1 scope |
+| [FEATURES.md](../docs/FEATURES.md) | Shipped vs planned (live status) |
+| [API.md](../docs/API.md) | REST, SSE, WebSocket |
+| [RESEARCH-MEMORY.md](../docs/RESEARCH-MEMORY.md) | Trace Git + preflight |
+| [ROADMAP.md](../docs/ROADMAP.md) | Build tracks |
+
+Upstream Hermes sync: [../scripts/sync-hermes-upstream.sh](../scripts/sync-hermes-upstream.sh)
+
+---
+
+## Hermes Agent (execution engine)
+
 <p align="center">
   <a href="https://hermes-agent.nousresearch.com/">Hermes Agent</a> | <a href="https://hermes-agent.nousresearch.com/">Hermes Desktop</a>
 </p>
 <p align="center">
-  <a href="https://hermes-agent.nousresearch.com/docs/"><img src="https://img.shields.io/badge/Docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Documentation"></a>
+  <a href="https://hermes-agent.nousresearch.com/docs/"><img src="https://img.shields.io/badge/Hermes%20docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Hermes documentation"></a>
   <a href="https://discord.gg/NousResearch"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://github.com/NousResearch/hermes-agent/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
-  <a href="https://nousresearch.com"><img src="https://img.shields.io/badge/Built%20by-Nous%20Research-blueviolet?style=for-the-badge" alt="Built by Nous Research"></a>
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/Lang-中文-red?style=for-the-badge" alt="中文"></a>
   <a href="README.ur-pk.md"><img src="https://img.shields.io/badge/Lang-اردو-green?style=for-the-badge" alt="اردو"></a>
 </p>
+
+The sections below describe **upstream Hermes** — the runtime DAO extends (tools, gateway, skills, memory, terminal backends). DAO adds Space isolation, Drive writeback, Research Memory, and the org supervisor on top; it does not replace the agent loop.
 
 **The self-improving AI agent built by [Nous Research](https://nousresearch.com).** It's the only agent with a built-in learning loop — it creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions. Run it on a $5 VPS, a GPU cluster, or serverless infrastructure that costs nearly nothing when idle. It's not tied to your laptop — talk to it from Telegram while it works on a cloud VM.
 
