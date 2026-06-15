@@ -149,10 +149,25 @@ async def _lifespan(app: "FastAPI"):
         cron_thread.start()
 
     try:
+        from DAO.config import DAO_enabled
+        from DAO.db import init_pool
+
+        if DAO_enabled():
+            await init_pool()
+    except Exception as exc:
+        _log.warning("DAO DB pool init skipped: %s", exc)
+
+    try:
         yield
     finally:
         if cron_stop is not None:
             cron_stop.set()
+        try:
+            from DAO.db import close_pool
+
+            await close_pool()
+        except Exception:
+            pass
 
 
 def _get_event_state(app: "FastAPI"):
@@ -205,6 +220,7 @@ _REVEAL_WINDOW_SECONDS = 30
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -224,6 +240,7 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 from hermes_cli.dashboard_auth.public_paths import (
     PUBLIC_API_PATHS as _PUBLIC_API_PATHS,
+    bypass_hermes_dashboard_auth,
 )
 
 
@@ -402,6 +419,15 @@ async def auth_middleware(request: Request, call_next):
     if getattr(request.app.state, "auth_required", False):
         return await call_next(request)
     path = request.url.path
+    if bypass_hermes_dashboard_auth(path, request.method):
+        return await call_next(request)
+    try:
+        from DAO.hermes.internal_auth import is_DAO_proxy_request
+
+        if is_DAO_proxy_request(request.headers.get("x-DAO-hermes-proxy")):
+            return await call_next(request)
+    except ImportError:
+        pass
     if path.startswith("/api/") and path not in _PUBLIC_API_PATHS:
         if not _has_valid_session_token(request):
             return JSONResponse(
@@ -6489,8 +6515,21 @@ def _open_session_db_for_profile(profile: Optional[str]):
     single-profile case). A named profile opens that profile's on-disk
     ``state.db`` directly so the primary backend can serve cross-profile reads
     (transcripts, detail) without spawning that profile's backend.
+
+    When DAO Space middleware has bound ``HERMES_HOME`` for the current request,
+    reads use that bound home — cron automation runs persist sessions to the
+    owner's VPC while ``jobs.json`` may live under a named profile directory.
     """
-    from hermes_state import SessionDB
+    from hermes_state import SessionDB, resolve_state_db_path
+
+    try:
+        from DAO.runtime import get_runtime_context
+
+        if get_runtime_context() is not None:
+            return SessionDB(db_path=resolve_state_db_path())
+    except ImportError:
+        pass
+
     if not profile:
         return SessionDB()
     _name, home = _cron_profile_home(profile)
@@ -10151,6 +10190,10 @@ def _ws_auth_reason(ws: "WebSocket") -> tuple[Optional[str], str]:
             consume_ticket(ticket)
             return None, "ticket"
         except TicketInvalid as exc:
+            from DAO.gateway_ws import try_DAO_ws_auth
+
+            if try_DAO_ws_auth(ws, ticket):
+                return None, "DAO_ticket"
             audit_log(
                 AuditEvent.WS_TICKET_REJECTED,
                 reason=str(exc),
@@ -10158,6 +10201,14 @@ def _ws_auth_reason(ws: "WebSocket") -> tuple[Optional[str], str]:
                 path=ws.url.path,
             )
             return "ticket_invalid", "ticket"
+
+    ticket = ws.query_params.get("ticket", "")
+    if ticket:
+        from DAO.gateway_ws import try_DAO_ws_auth
+
+        if try_DAO_ws_auth(ws, ticket):
+            return None, "DAO_ticket"
+        return "ticket_invalid", "ticket"
 
     token = ws.query_params.get("token", "")
     if not token:
@@ -10529,7 +10580,9 @@ async def gateway_ws(ws: WebSocket) -> None:
 
     from tui_gateway.ws import handle_ws
 
-    await handle_ws(ws)
+    from DAO.gateway_ws import handle_gateway_ws
+
+    await handle_gateway_ws(ws, handle_ws)
 
 
 # ---------------------------------------------------------------------------
@@ -10643,6 +10696,29 @@ def mount_spa(application: FastAPI):
     without rebuilding the bundle.
     """
     if not WEB_DIST.exists():
+        try:
+            from DAO.config import DAO_enabled, DAO_web_url
+
+            _DAO_ui = DAO_enabled()
+        except ImportError:
+            _DAO_ui = False
+
+        if _DAO_ui:
+            _DAO_web = DAO_web_url().rstrip("/")
+            from fastapi.responses import RedirectResponse
+
+            @application.get("/")
+            async def DAO_redirect_root():
+                return RedirectResponse(_DAO_web)
+
+            @application.get("/{full_path:path}")
+            async def DAO_redirect_ui(full_path: str):
+                if full_path.startswith("api/"):
+                    return JSONResponse({"error": "Not found"}, status_code=404)
+                return RedirectResponse(f"{_DAO_web}/{full_path}")
+
+            return
+
         @application.get("/{full_path:path}")
         async def no_frontend(full_path: str):
             return JSONResponse(
@@ -10760,6 +10836,7 @@ def mount_spa(application: FastAPI):
 _BUILTIN_DASHBOARD_THEMES = [
     {"name": "default",       "label": "Hermes Teal",         "description": "Classic dark teal — the canonical Hermes look"},
     {"name": "default-large", "label": "Hermes Teal (Large)", "description": "Hermes Teal with bigger fonts and roomier spacing"},
+    {"name": "void",          "label": "VOID",                "description": "DAO OS — black void with Phantom lavender accents"},
     {"name": "nous-blue",     "label": "Nous Blue",           "description": "Light mode — vivid Nous-blue accents on cream canvas"},
     {"name": "midnight",      "label": "Midnight",            "description": "Deep blue-violet with cool accents"},
     {"name": "ember",     "label": "Ember",          "description": "Warm crimson and bronze — forge vibes"},
@@ -11698,6 +11775,13 @@ _mount_plugin_api_routes()
 # not whether the routes exist.
 from hermes_cli.dashboard_auth.routes import router as _dashboard_auth_router  # noqa: E402
 app.include_router(_dashboard_auth_router)
+
+try:
+    from DAO.app import mount_DAO
+
+    mount_DAO(app)
+except ImportError:
+    _log.debug("DAO layer not installed — skipping mount")
 
 mount_spa(app)
 

@@ -24,7 +24,7 @@ import { Terminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
 import { Button } from "@nous-research/ui/ui/components/button";
 import { Typography } from "@nous-research/ui/ui/components/typography/index";
-import { HERMES_BASE_PATH, buildWsAuthParam } from "@/lib/api";
+import { HERMES_BASE_PATH, buildPtyWsUrl } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Copy, PanelRight, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -38,24 +38,15 @@ import { api } from "@/lib/api";
 import { PluginSlot } from "@/plugins";
 import { useTheme } from "@/themes";
 import { useProfileScope } from "@/contexts/useProfileScope";
+import { isDAOEmbed } from "@/lib/DAO-embed";
 
 function buildWsUrl(
-  authParam: [string, string],
+  _authParam: [string, string],
   resume: string | null,
   channel: string,
   profile: string,
-): string {
-  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-  // ``authParam`` is ``["token", <session>]`` in loopback mode and
-  // ``["ticket", <minted>]`` in gated mode. The server-side helper
-  // ``_ws_auth_ok`` picks whichever shape matches the current gate state.
-  const qs = new URLSearchParams({ [authParam[0]]: authParam[1], channel });
-  if (resume) qs.set("resume", resume);
-  // Profile-scoped chat: the PTY child gets HERMES_HOME pointed at the
-  // selected profile, so the conversation runs with that profile's model,
-  // skills, memory, and sessions (see web_server._resolve_chat_argv).
-  if (profile) qs.set("profile", profile);
-  return `${proto}//${window.location.host}${HERMES_BASE_PATH}/api/pty?${qs.toString()}`;
+): Promise<string> {
+  return buildPtyWsUrl(resume, channel, profile);
 }
 
 // Channel id ties this chat tab's PTY child (publisher) to its sidebar
@@ -133,7 +124,8 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
   const [banner, setBanner] = useState<string | null>(() =>
     typeof window !== "undefined" &&
     !window.__HERMES_SESSION_TOKEN__ &&
-    !window.__HERMES_AUTH_REQUIRED__
+    !window.__HERMES_AUTH_REQUIRED__ &&
+    !isDAOEmbed()
       ? "Session token unavailable. Open this page through `hermes dashboard`, not directly."
       : null,
   );
@@ -301,7 +293,8 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
     // Banner already initialised above; just bail before wiring xterm/WS.
     // In gated mode the token is absent by design — buildWsAuthParam() mints
     // a WS ticket instead, so don't bail; let the effect reach that path.
-    if (!token && !gated) {
+    // DAO embed authenticates via DAO JWT ws tickets (same path as gated).
+    if (!token && !gated && !isDAOEmbed()) {
       return;
     }
 
@@ -584,9 +577,8 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
     let onDataDisposable: { dispose(): void } | null = null;
     let onResizeDisposable: { dispose(): void } | null = null;
     void (async () => {
-      const authParam = await buildWsAuthParam();
       if (unmounting) return;
-      const url = buildWsUrl(authParam, resumeParam, channel, scopedProfile);
+      const url = await buildWsUrl(["ticket", ""], resumeParam, channel, scopedProfile);
       const ws = new WebSocket(url);
       ws.binaryType = "arraybuffer";
       wsRef.current = ws;

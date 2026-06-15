@@ -13,7 +13,7 @@
  *   await gw.request("prompt.submit", { session_id, text: "hi" })
  */
 
-import { HERMES_BASE_PATH, getWsTicket } from "@/lib/api";
+import { buildWsUrl } from "@/lib/api";
 
 export type GatewayEventName =
   | "gateway.ready"
@@ -109,33 +109,10 @@ export class GatewayClient {
     if (this._state === "open" || this._state === "connecting") return;
     this.setState("connecting");
 
-    // Gated mode: legacy ``?token=`` is rejected by ``_ws_auth_ok``; the
-    // SPA must fetch a single-use ticket via /api/auth/ws-ticket instead.
-    // Explicit ``token`` overrides the gate check (test-only path).
-    let authParamName: string;
-    let authParamValue: string;
-    if (token) {
-      authParamName = "token";
-      authParamValue = token;
-    } else if (window.__HERMES_AUTH_REQUIRED__) {
-      const { ticket } = await getWsTicket();
-      authParamName = "ticket";
-      authParamValue = ticket;
-    } else {
-      authParamName = "token";
-      authParamValue = window.__HERMES_SESSION_TOKEN__ ?? "";
-      if (!authParamValue) {
-        this.setState("error");
-        throw new Error(
-          "Session token not available — page must be served by the Hermes dashboard",
-        );
-      }
-    }
-
-    const scheme = location.protocol === "https:" ? "wss:" : "ws:";
-    const ws = new WebSocket(
-      `${scheme}//${location.host}${HERMES_BASE_PATH}/api/ws?${authParamName}=${encodeURIComponent(authParamValue)}`,
-    );
+    const wsUrl = token
+      ? await buildWsUrl("/api/ws", { token })
+      : await buildWsUrl("/api/ws");
+    const ws = new WebSocket(wsUrl);
     this.ws = ws;
 
     // Register message + close BEFORE awaiting open — the server emits

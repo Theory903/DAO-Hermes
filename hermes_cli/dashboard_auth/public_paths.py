@@ -47,3 +47,17 @@ PUBLIC_API_PATHS: frozenset[str] = frozenset({
     "/api/dashboard/themes",
     "/api/dashboard/plugins",
 })
+
+
+def bypass_hermes_dashboard_auth(path: str, method: str) -> bool:
+    """Let DAO ``/api/v1/*`` use its own JWT gate instead of Hermes session token."""
+    if method == "OPTIONS":
+        return True
+    if not path.startswith("/api/v1/"):
+        return False
+    try:
+        from DAO.config import DAO_enabled
+
+        return DAO_enabled()
+    except ImportError:
+        return False

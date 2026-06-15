@@ -366,6 +366,20 @@ def _compute_tool_definitions(
             # (for token/cost reasons), but that should not strip the kanban
             # worker's completion/block/heartbeat surface.
             effective_enabled_toolsets.append("kanban")
+        try:
+            from DAO.config import DAO_enabled
+            from DAO.runtime import get_runtime_context
+
+            ctx = get_runtime_context()
+            if (
+                DAO_enabled()
+                and ctx is not None
+                and ctx.space_id is not None
+                and "DAO" not in effective_enabled_toolsets
+            ):
+                effective_enabled_toolsets.append("DAO")
+        except ImportError:
+            pass
         for toolset_name in effective_enabled_toolsets:
             if validate_toolset(toolset_name):
                 resolved = resolve_toolset(toolset_name)

@@ -950,6 +950,8 @@ def _start_agent_build(sid: str, session: dict) -> None:
             finally:
                 _clear_session_context(tokens)
 
+            _apply_voice_session_prompt(agent, current)
+
             # Session DB row deferred to first run_conversation() call.
             # pending_title applied post-first-message (see cli.exec handler).
             current["agent"] = agent
@@ -1138,6 +1140,46 @@ def _register_session_cwd(session: dict | None) -> None:
         pass
 
 
+def _stamp_dao_session_auth(session: dict, *, transport: Transport | None = None) -> None:
+    try:
+        from DAO.gateway_runtime import copy_dao_auth_to_session
+
+        copy_dao_auth_to_session(session, transport=transport)
+    except ImportError:
+        pass
+
+
+_VOICE_SESSION_SOURCE_ID = "voice"
+_VOICE_EPHEMERAL_MARKER = "hands-free voice mode"
+_VOICE_EPHEMERAL_PROMPT = (
+    "You are in hands-free voice mode; the user hears your reply via text-to-speech.\n"
+    "Keep spoken answers short, accurate, and direct — no fluff, no preamble, no recap of the question.\n"
+    "Skip background, caveats, bullet lists, and follow-up offers unless they ask for detail, "
+    "explanation, or a particular tone.\n"
+    "If you need clarification, ask one brief question.\n"
+    "After tools finish, summarize in one or two sentences unless they asked for a full report."
+)
+
+
+def _is_voice_session(session: dict | None) -> bool:
+    if not session:
+        return False
+    return (session.get("source") or "").strip().lower() == _VOICE_SESSION_SOURCE_ID
+
+
+def _apply_voice_session_prompt(agent, session: dict | None) -> None:
+    """Tag voice-bucket sessions so replies are brief enough for TTS."""
+    if agent is None or not _is_voice_session(session):
+        return
+    existing = (getattr(agent, "ephemeral_system_prompt", None) or "").strip()
+    if _VOICE_EPHEMERAL_MARKER in existing:
+        return
+    merged = "\n\n".join(part for part in (existing, _VOICE_EPHEMERAL_PROMPT) if part).strip()
+    agent.ephemeral_system_prompt = merged or None
+    if hasattr(agent, "_cached_system_prompt"):
+        agent._cached_system_prompt = None
+
+
 def _ensure_session_db_row(session: dict) -> None:
     """Idempotently persist the session's DB row on first real activity.
 
@@ -1175,12 +1217,16 @@ def _ensure_session_db_row(session: dict) -> None:
     if db is None:
         return
     try:
+        explicit_source = (session.get("source") or "").strip()
+        persisted_source = explicit_source or "tui"
         db.create_session(
             key,
-            source="tui",
+            source=persisted_source,
             model=_resolve_model(),
             cwd=_session_cwd(session) if session.get("explicit_cwd") else None,
         )
+        if explicit_source and explicit_source != "tui":
+            db.ensure_session_source(key, explicit_source)
     except Exception:
         logger.debug("failed to persist desktop session row", exc_info=True)
     finally:
@@ -2846,13 +2892,33 @@ def _mirror_subagent_to_child(event_type: str, payload: dict) -> None:
 
 
 def _agent_cbs(sid: str) -> dict:
+    def _tool_start(tc_id, name, args):
+        _on_tool_start(sid, tc_id, name, args)
+        try:
+            from DAO.hooks.worker_task import maybe_worker_preflight
+
+            maybe_worker_preflight(sid, tc_id, name, args)
+        except Exception:
+            pass
+
+    def _tool_complete(tc_id, name, args, result):
+        _on_tool_complete(sid, tc_id, name, args, result)
+        try:
+            from DAO.hooks.tool_writeback import maybe_DAO_tool_writeback
+
+            maybe_DAO_tool_writeback(name, args, result)
+        except Exception:
+            pass
+        try:
+            from DAO.hooks.worker_task import maybe_capture_worker_task
+
+            maybe_capture_worker_task(sid, tc_id, name, args, result)
+        except Exception:
+            pass
+
     return {
-        "tool_start_callback": lambda tc_id, name, args: _on_tool_start(
-            sid, tc_id, name, args
-        ),
-        "tool_complete_callback": lambda tc_id, name, args, result: _on_tool_complete(
-            sid, tc_id, name, args, result
-        ),
+        "tool_start_callback": _tool_start,
+        "tool_complete_callback": _tool_complete,
         "tool_progress_callback": lambda event_type, name=None, preview=None, args=None, **kwargs: _on_tool_progress(
             sid, event_type, name, preview, args, **kwargs
         ),
@@ -3258,6 +3324,7 @@ def _reset_session_agent(sid: str, session: dict) -> dict:
         )
     finally:
         _clear_session_context(tokens)
+    _apply_voice_session_prompt(new_agent, session)
     session["agent"] = new_agent
     session["config_model_seen"] = _config_model_target()
     session["attached_images"] = []
@@ -3466,6 +3533,8 @@ def _init_session(
             # session (stdio for Ink, JSON-RPC WS for the dashboard sidebar).
             "transport": current_transport() or _stdio_transport,
         }
+        _register_session_cwd(_sessions[sid])
+    _stamp_dao_session_auth(_sessions[sid])
     db = session_db if session_db is not None else _get_db()
     if db is not None:
         row = db.get_session(key)
@@ -3909,6 +3978,10 @@ def _(rid, params: dict) -> dict:
             "profile_home": str(profile_home) if profile_home is not None else None,
             "running": False,
             "session_key": key,
+            # Optional persisted source bucket (e.g. "voice" so the desktop
+            # sidebar can group Home voice conversations on their own). Falls
+            # back to the default "tui" when the client doesn't ask for one.
+            "source": (str(params.get("source") or "").strip() or None),
             "show_reasoning": _load_show_reasoning(),
             "slash_worker": None,
             "tool_progress_mode": _load_tool_progress_mode(),
@@ -3916,6 +3989,7 @@ def _(rid, params: dict) -> dict:
             "transport": current_transport() or _stdio_transport,
         }
         _register_session_cwd(_sessions[sid])
+    _stamp_dao_session_auth(_sessions[sid])
     # NOTE: we intentionally do NOT persist a DB row here. Every TUI/desktop
     # launch (and every "New agent" / draft) opens a session here just to paint
     # the composer, so eagerly creating a row left an "Untitled" empty session
@@ -4079,6 +4153,13 @@ def _(rid, params: dict) -> dict:
             target = found["id"]
         else:
             return _err(rid, 4007, "session not found")
+    resume_source_hint = (params.get("source") or "").strip() or None
+    if resume_source_hint and resume_source_hint.lower() != "tui":
+        try:
+            db.ensure_session_source(target, resume_source_hint)
+            found = db.get_session(target) or found
+        except Exception:
+            logger.debug("failed to persist resume source hint", exc_info=True)
     profile_resume_cwd = str(found.get("cwd") or "").strip() or _profile_configured_cwd(
         profile_home
     )
@@ -4170,6 +4251,7 @@ def _(rid, params: dict) -> dict:
                     "resume_session_id": target,
                     "running": False,
                     "session_key": target,
+                    "source": (found.get("source") or "").strip() or None,
                     "show_reasoning": _load_show_reasoning(),
                     "slash_worker": None,
                     "tool_progress_mode": _load_tool_progress_mode(),
@@ -4177,6 +4259,7 @@ def _(rid, params: dict) -> dict:
                     "transport": current_transport() or _stdio_transport,
                 }
                 _register_session_cwd(_sessions[sid])
+                _stamp_dao_session_auth(_sessions[sid])
         return _ok(
             rid,
             {
@@ -4238,6 +4321,11 @@ def _(rid, params: dict) -> dict:
                 session_id=target,
                 session_db=db,
                 **stored_runtime_overrides,
+            )
+            resume_source = (found.get("source") or "").strip() or None
+            _apply_voice_session_prompt(
+                agent,
+                {"source": resume_source} if resume_source else None,
             )
         finally:
             _clear_session_context(tokens)
@@ -4302,6 +4390,8 @@ def _(rid, params: dict) -> dict:
                 # skills — must resolve to the resumed profile too).
                 if profile_home is not None:
                     _sessions[sid]["profile_home"] = str(profile_home)
+                if resume_source:
+                    _sessions[sid]["source"] = resume_source
                 _sessions[sid]["active_session_lease"] = lease
         except Exception as e:
             if lease is not None:
@@ -4450,6 +4540,7 @@ def _live_session_payload(
             session["cols"] = cols
         if transport is not None:
             session["transport"] = transport
+            _stamp_dao_session_auth(session, transport=transport)
         if touch:
             session["last_active"] = time.time()
         history = list(session.get("display_history_prefix") or []) + list(
@@ -5735,8 +5826,15 @@ def _run_prompt_submit(rid, sid: str, session: dict, text: Any) -> None:
         approval_token = None
         session_tokens = []
         home_token = None  # per-turn HERMES_HOME override for a resumed remote profile
+        dao_bind = None
         goal_followup = None  # set by the post-turn goal hook below
         try:
+            try:
+                from DAO.gateway_runtime import bind_dao_runtime_from_session
+
+                dao_bind = bind_dao_runtime_from_session(session)
+            except ImportError:
+                dao_bind = None
             from tools.approval import (
                 reset_current_session_key,
                 set_current_session_key,
@@ -5760,6 +5858,7 @@ def _run_prompt_submit(rid, sid: str, session: dict, text: Any) -> None:
             cols = session.get("cols", 80)
             streamer = make_stream_renderer(cols)
             prompt = text
+            _persist_user = text if isinstance(text, str) else None
 
             if isinstance(prompt, str) and "@" in prompt:
                 from agent.context_references import preprocess_context_references
@@ -5791,6 +5890,34 @@ def _run_prompt_submit(rid, sid: str, session: dict, text: Any) -> None:
                     )
                     return
                 prompt = ctx.message
+
+            try:
+                from DAO.hooks.prompt_supervisor import (
+                    apply_DAO_supervisor_routing,
+                    maybe_publish_supervisor_route,
+                )
+
+                _mission = str(session.get("DAO_mission") or "")
+                if not _mission.strip():
+                    try:
+                        from DAO.runtime import get_runtime_context
+
+                        _ctx = get_runtime_context()
+                        if _ctx and _ctx.mission:
+                            _mission = str(_ctx.mission)
+                    except Exception:
+                        pass
+                prompt, _route = apply_DAO_supervisor_routing(
+                    prompt, mission=_mission
+                )
+                if _route:
+                    _emit("supervisor.route", sid, _route)
+                    session["DAO_last_route"] = _route
+                    maybe_publish_supervisor_route(_route)
+            except Exception:
+                pass
+
+            # Store the Board's raw text in history; supervisor routing is ephemeral.
 
             # Decide image routing per-turn based on active provider/model.
             # "native" → pass pixels to the main model as OpenAI-style content
@@ -5861,6 +5988,8 @@ def _run_prompt_submit(rid, sid: str, session: dict, text: Any) -> None:
                 "conversation_history": list(history),
                 "stream_callback": _stream,
             }
+            if _persist_user is not None and _persist_user != run_message:
+                run_kwargs["persist_user_message"] = _persist_user
             try:
                 if "task_id" in inspect.signature(agent.run_conversation).parameters:
                     run_kwargs["task_id"] = session["session_key"]
@@ -6071,6 +6200,12 @@ def _run_prompt_submit(rid, sid: str, session: dict, text: Any) -> None:
             )
             _emit("error", sid, {"message": str(e)})
         finally:
+            try:
+                from DAO.runtime import unbind_hermes_runtime
+
+                unbind_hermes_runtime(dao_bind)
+            except ImportError:
+                pass
             try:
                 if approval_token is not None:
                     reset_current_session_key(approval_token)

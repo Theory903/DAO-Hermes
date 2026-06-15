@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#000000" />
+    <title>DAO OS</title>
+    <script>
+      // Pre-paint the themed background before the app bundle loads. Without
+      // this, macOS vibrancy shows a blank desktop through the window until
+      // the module graph runs. applyTheme() in src/themes/context.tsx keeps
+      // these keys fresh.
+      try {
+        let bg = localStorage.getItem('hermes-boot-background')
+        let scheme = localStorage.getItem('hermes-boot-color-scheme')
+        if (!bg) {
+          bg = '#000000'
+          scheme = 'dark'
+        }
+        document.documentElement.style.backgroundColor = bg
+        if (scheme === 'dark' || scheme === 'light') {
+          document.documentElement.style.colorScheme = scheme
+        }
+        document.documentElement.classList.add('DAO-void')
+        document.documentElement.dataset.hermesTheme = 'void'
+      } catch {
+        // localStorage unavailable — keep UA defaults.
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

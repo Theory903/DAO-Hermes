@@ -1,14 +1,27 @@
 {
-  "name": "web",
+  "name": "@hermes/dashboard",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist-DAO/index.d.ts",
+      "default": "./dist-DAO/hermes-dashboard.js"
+    },
+    "./style.css": "./dist-DAO/hermes-dashboard.css"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:DAO": "vite build --config vite.DAO.config.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc -p . --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.0.0"
   },
   "dependencies": {
     "@nous-research/ui": "0.18.2",
@@ -27,8 +40,6 @@
     "lucide-react": "^0.577.0",
     "motion": "^12.38.0",
     "qrcode": "^1.5.4",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
     "react-router-dom": "^7.17.0",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
@@ -45,6 +56,8 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "react": "19.2.0-canary-0bdb9206-20250818",
+    "react-dom": "19.2.0-canary-0bdb9206-20250818",
     "three": "^0.180.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.56.1",

@@ -977,9 +977,12 @@ def init_agent(
     # Resolving the ~835-token block once here avoids re-running the
     # membership test + reference on every system-prompt rebuild
     # (init + each context compression).
-    from agent.prompt_builder import KANBAN_GUIDANCE
+    from agent.prompt_builder import KANBAN_GUIDANCE, DAO_LEAD_GUIDANCE
     agent._kanban_worker_guidance = (
         KANBAN_GUIDANCE if "kanban_show" in agent.valid_tool_names else ""
+    )
+    agent._DAO_lead_guidance = (
+        DAO_LEAD_GUIDANCE if "DAO_navigate" in agent.valid_tool_names else ""
     )
 
     # Check tool requirements

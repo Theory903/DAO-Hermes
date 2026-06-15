@@ -279,6 +279,241 @@ export const nousBlueTheme: DashboardTheme = {
 };
 
 /**
+ * VOID — DAO OS default. Absolute black void, Phantom lavender primary,
+ * signal semantics for status. Used automatically in DAO Studio embed.
+ */
+export const voidTheme: DashboardTheme = {
+  name: "void",
+  label: "VOID",
+  description: "DAO OS — black void with Phantom lavender accents",
+  palette: {
+    background: { hex: "#000000", alpha: 1 },
+    midground: { hex: "#AB9FF2", alpha: 1 },
+    foreground: { hex: "#ffffff", alpha: 0 },
+    warmGlow: "rgba(171, 159, 242, 0.15)",
+    noiseOpacity: 0,
+  },
+  typography: {
+    ...DEFAULT_TYPOGRAPHY,
+    fontSans: `"Inter", ${SYSTEM_SANS}`,
+    fontDisplay: `"Space Grotesk", ${SYSTEM_SANS}`,
+    fontMono: `"JetBrains Mono", ${SYSTEM_MONO}`,
+    fontUrl:
+      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap",
+    baseSize: "14px",
+    lineHeight: "1.5",
+    letterSpacing: "0",
+  },
+  layout: {
+    radius: "1rem",
+    density: "comfortable",
+  },
+  colorOverrides: {
+    primary: "#AB9FF2",
+    primaryForeground: "#000000",
+    secondary: "#111111",
+    secondaryForeground: "#a3a3a3",
+    muted: "#0a0a0a",
+    mutedForeground: "#737373",
+    accent: "#141414",
+    accentForeground: "#AB9FF2",
+    destructive: "#ef4444",
+    destructiveForeground: "#ffffff",
+    success: "#22c55e",
+    warning: "#eab308",
+    border: "#1a1a1a",
+    input: "#141414",
+    ring: "#AB9FF2",
+    card: "#0a0a0a",
+    cardForeground: "#ffffff",
+    popover: "#0a0a0a",
+    popoverForeground: "#ffffff",
+  },
+  seriesColors: {
+    inputTokenAccent: "#AB9FF2",
+    outputTokenAccent: "#22c55e",
+  },
+  componentStyles: {
+    sidebar: {
+      background: "rgba(10, 10, 10, 0.82)",
+      borderImage: "linear-gradient(180deg, rgba(171,159,242,0.12), rgba(255,255,255,0.04)) 1",
+    },
+    header: {
+      background: "rgba(10, 10, 10, 0.78)",
+      borderImage: "linear-gradient(90deg, rgba(171,159,242,0.14), rgba(255,255,255,0.05) 50%, rgba(171,159,242,0.06)) 1",
+    },
+    backdrop: {
+      fillerOpacity: "0.02",
+    },
+    card: {
+      background: "#0a0a0a",
+      borderColor: "#1a1a1a",
+    },
+  },
+  terminalBackground: "#000000",
+  swatchColors: ["#000000", "#AB9FF2", "#7F6FD4", "#22c55e"],
+  customCSS: `
+/* VOID — canonical text + surface tokens */
+:root {
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #737373;
+  --text-muted: #525252;
+  --text-disabled: #404040;
+  --text-display: #ffffff;
+  --text-on-accent: #000000;
+  --color-foreground: #ffffff;
+  --primary-glow: rgba(171, 159, 242, 0.15);
+  --primary-glow-strong: rgba(171, 159, 242, 0.25);
+  --signal-green-glow: rgba(34, 197, 94, 0.15);
+  --signal-yellow-glow: rgba(234, 179, 8, 0.12);
+  --signal-red-glow: rgba(239, 68, 68, 0.12);
+  --glass-bg: rgba(10, 10, 10, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --void-canvas-glow:
+    radial-gradient(ellipse 100% 72% at 50% -22%, rgba(171, 159, 242, 0.14), transparent 58%),
+    radial-gradient(ellipse 58% 42% at 100% 0%, rgba(171, 159, 242, 0.07), transparent 46%),
+    radial-gradient(ellipse 48% 36% at 0% 78%, rgba(171, 159, 242, 0.05), transparent 44%),
+    radial-gradient(ellipse 85% 55% at 50% 100%, rgba(255, 255, 255, 0.025), transparent 52%);
+  --void-canvas-vignette: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 42%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* Body copy uses white/gray — midground stays lavender for brand accents only */
+[data-DAO-embed="true"] {
+  --font-sans: var(--font-inter, "Inter"), ui-sans-serif, system-ui, sans-serif;
+  --font-mondwest: var(--font-space-grotesk, "Space Grotesk"), ui-sans-serif, system-ui, sans-serif;
+  --font-rules-compressed: var(--font-space-grotesk, "Space Grotesk"), ui-sans-serif, system-ui, sans-serif;
+  --font-rules-expanded: var(--font-space-grotesk, "Space Grotesk"), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono, "JetBrains Mono"), ui-monospace, monospace;
+  --theme-font-sans: var(--font-inter, "Inter"), ui-sans-serif, system-ui, sans-serif;
+  --theme-font-display: var(--font-space-grotesk, "Space Grotesk"), ui-sans-serif, system-ui, sans-serif;
+  --theme-font-mono: var(--font-jetbrains-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-family: var(--theme-font-sans);
+  color: var(--text-primary);
+  color-scheme: dark;
+  background: transparent;
+}
+[data-DAO-embed="true"] .font-mondwest,
+[data-DAO-embed="true"] .font-compressed,
+[data-DAO-embed="true"] .font-expanded {
+  font-family: var(--font-space-grotesk, "Space Grotesk"), ui-sans-serif, system-ui, sans-serif !important;
+}
+[data-DAO-embed="true"] p,
+[data-DAO-embed="true"] span:not([class*="text-"]):not([class*="text-primary"]):not([class*="text-midground"]),
+[data-DAO-embed="true"] li {
+  color: inherit;
+}
+[data-DAO-embed="true"] .text-foreground {
+  color: var(--text-primary) !important;
+}
+[data-DAO-embed="true"] .text-muted-foreground {
+  color: var(--text-tertiary) !important;
+}
+[data-DAO-embed="true"] #app-sidebar {
+  margin: 12px;
+  width: 240px !important;
+  max-width: 240px !important;
+  height: calc(100dvh - 24px) !important;
+  max-height: calc(100dvh - 24px) !important;
+  border-radius: 20px;
+  border: 1px solid rgba(171, 159, 242, 0.1) !important;
+  border-right: 1px solid rgba(171, 159, 242, 0.1) !important;
+  background: rgba(10, 10, 10, 0.82) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 12px 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+[data-DAO-embed="true"] #app-sidebar nav a {
+  color: var(--text-secondary) !important;
+}
+[data-DAO-embed="true"] #app-sidebar [aria-current="page"] {
+  background: rgba(171, 159, 242, 0.14) !important;
+  border-radius: 9999px;
+  color: #AB9FF2 !important;
+  box-shadow: inset 0 0 0 1px rgba(171, 159, 242, 0.22);
+}
+[data-DAO-embed="true"] #app-sidebar nav a:not([aria-current="page"]):hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+[data-DAO-embed="true"] #app-sidebar nav {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+[data-DAO-embed="true"] header {
+  border-color: rgba(171, 159, 242, 0.12) !important;
+  border-bottom-color: rgba(171, 159, 242, 0.12) !important;
+  background: rgba(10, 10, 10, 0.78) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+[data-DAO-embed="true"] header[role="banner"] h1 {
+  color: var(--text-primary) !important;
+}
+[data-DAO-embed="true"] header button:hover,
+[data-DAO-embed="true"] #app-sidebar > div:first-child button:hover {
+  color: #AB9FF2 !important;
+}
+[data-DAO-embed="true"] .hermes-studio-root,
+[data-DAO-embed="true"] [data-layout-variant] > div.flex.min-h-0,
+[data-DAO-embed="true"] main {
+  background: transparent;
+  color: var(--text-primary);
+}
+[data-DAO-embed="true"] [class*="border-current"] {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+[data-DAO-embed="true"] input,
+[data-DAO-embed="true"] textarea,
+[data-DAO-embed="true"] select {
+  background: #141414 !important;
+  border-color: #1a1a1a !important;
+  color: var(--text-primary) !important;
+}
+[data-DAO-embed="true"] input::placeholder,
+[data-DAO-embed="true"] textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+[data-DAO-embed="true"] input:focus-visible,
+[data-DAO-embed="true"] textarea:focus-visible {
+  border-color: rgba(171, 159, 242, 0.45) !important;
+  box-shadow: 0 0 0 1px rgba(171, 159, 242, 0.2) !important;
+}
+[data-DAO-embed="true"] [data-slot="card"],
+[data-DAO-embed="true"] .rounded-lg.border {
+  background: #0a0a0a !important;
+  border-color: #1a1a1a !important;
+}
+[data-DAO-embed="true"] [data-slot="card"]:hover,
+[data-DAO-embed="true"] .void-card:hover {
+  border-color: var(--color-void-border-strong, #2a2a2a) !important;
+}
+[data-DAO-embed="true"] a.text-primary,
+[data-DAO-embed="true"] .text-primary:not(.bg-primary) {
+  color: #AB9FF2 !important;
+}
+[data-DAO-embed="true"] ::selection {
+  background: rgba(171, 159, 242, 0.35);
+  color: #ffffff;
+}
+[data-DAO-embed="true"] * {
+  scrollbar-color: #2a2a2a transparent;
+  scrollbar-width: thin;
+}
+[data-DAO-embed="true"] *::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 9999px;
+}
+[data-DAO-embed="true"] *::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, #AB9FF2 25%, #2a2a2a);
+}
+`,
+};
+
+/**
  * Same look as ``defaultTheme`` but with a larger root font size, looser
  * line-height, and ``spacious`` density so every rem-based size in the
  * dashboard scales up. For users who find the default 15px UI too dense.
@@ -302,6 +537,7 @@ export const defaultLargeTheme: DashboardTheme = {
 export const BUILTIN_THEMES: Record<string, DashboardTheme> = {
   default: defaultTheme,
   "default-large": defaultLargeTheme,
+  void: voidTheme,
   "nous-blue": nousBlueTheme,
   midnight: midnightTheme,
   ember: emberTheme,

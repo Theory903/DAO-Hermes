@@ -107,6 +107,15 @@ T = TypeVar("T")
 
 DEFAULT_DB_PATH = get_hermes_home() / "state.db"
 
+
+def resolve_state_db_path(db_path: Path | None = None) -> Path:
+    """Resolve the SQLite session store for the current ``HERMES_HOME``.
+
+    ``DEFAULT_DB_PATH`` is computed at import time and does not follow later
+    ``set_hermes_home_override`` / DAO VPC binds (cron jobs, Space middleware).
+    """
+    return db_path if db_path is not None else (get_hermes_home() / "state.db")
+
 SCHEMA_VERSION = 16
 
 # ---------------------------------------------------------------------------
@@ -678,7 +687,7 @@ class SessionDB:
     _CHECKPOINT_EVERY_N_WRITES = 50
 
     def __init__(self, db_path: Path = None, read_only: bool = False):
-        self.db_path = db_path or DEFAULT_DB_PATH
+        self.db_path = resolve_state_db_path(db_path)
         self.read_only = read_only
 
         self._lock = threading.Lock()
@@ -1307,6 +1316,32 @@ class SessionDB:
         """Create a new session record. Returns the session_id."""
         self._insert_session_row(session_id, source, **kwargs)
         return session_id
+
+    def ensure_session_source(self, session_id: str, source: str) -> None:
+        """Upgrade a row's source when a generic default won the INSERT race.
+
+        Voice/desktop sessions tag an explicit source on first prompt; the
+        AIAgent may have already inserted the row with platform='tui'. Only
+        overwrite bland defaults — never clobber a deliberate platform tag
+        (including ``voice``, which must stay immutable once set).
+        """
+        if not session_id or not source:
+            return
+        generic = ("tui", "cli", "desktop", "local", "gateway", "unknown")
+
+        def _do(conn):
+            row = conn.execute(
+                "SELECT source FROM sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+            if row and (row[0] or "").strip().lower() == "voice":
+                return
+            conn.execute(
+                f"UPDATE sessions SET source = ? WHERE id = ? AND source IN ({','.join('?' * len(generic))})",
+                (source, session_id, *generic),
+            )
+
+        self._execute_write(_do)
     def end_session(self, session_id: str, end_reason: str) -> None:
         """Mark a session as ended.
 

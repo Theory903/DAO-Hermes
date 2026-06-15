@@ -346,7 +346,7 @@ function applyFontOverride(fontId: string | undefined) {
 // Apply a full theme to :root
 // ---------------------------------------------------------------------------
 
-function applyTheme(theme: DashboardTheme) {
+export function applyTheme(theme: DashboardTheme) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
 
@@ -406,11 +406,25 @@ function applyTheme(theme: DashboardTheme) {
 // Provider
 // ---------------------------------------------------------------------------
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+/** Apply a built-in theme synchronously (before React mount — avoids flash). */
+export function seedBuiltinTheme(name: string) {
+  const theme = BUILTIN_THEMES[name];
+  if (theme) applyTheme(theme);
+}
+
+export function ThemeProvider({
+  children,
+  defaultThemeName = "default",
+}: {
+  children: ReactNode;
+  /** Used when localStorage has no saved theme (DAO embed → `void`). */
+  defaultThemeName?: string;
+}) {
   /** Name of the currently active theme (built-in id or user YAML name). */
   const [themeName, setThemeName] = useState<string>(() => {
-    if (typeof window === "undefined") return "default";
-    const stored = window.localStorage.getItem(STORAGE_KEY) ?? "default";
+    if (typeof window === "undefined") return defaultThemeName;
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (!stored) return defaultThemeName;
     const migrated = migrateThemeName(stored);
     // Write the migrated name back so future reads converge on the new
     // key and we eventually retire the alias entry.

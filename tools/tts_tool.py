@@ -47,6 +47,7 @@ import shutil
 import subprocess
 import tempfile
 import threading
+import time
 import uuid
 from pathlib import Path
 from typing import Callable, Dict, Any, Optional
@@ -947,6 +948,96 @@ async def _generate_edge_tts(text: str, output_path: str, tts_config: Dict[str, 
     communicate = _edge_tts.Communicate(text, **kwargs)
     await communicate.save(output_path)
     return output_path
+
+
+def _edge_tts_sync(text: str, output_path: str, tts_config: Dict[str, Any]) -> None:
+    """Run Edge TTS in a sync context (thread pool or fresh event loop)."""
+    try:
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            pool.submit(
+                lambda: asyncio.run(_generate_edge_tts(text, output_path, tts_config))
+            ).result(timeout=60)
+    except RuntimeError:
+        asyncio.run(_generate_edge_tts(text, output_path, tts_config))
+
+
+def _edge_fallback_provider_chain(tts_config: Dict[str, Any]) -> list[str]:
+    """Built-in providers to try when Edge TTS fails (network / empty audio)."""
+    chain: list[str] = []
+    try:
+        _import_openai_client()
+        if _has_openai_audio_backend():
+            chain.append("openai")
+    except ImportError:
+        pass
+    try:
+        _import_elevenlabs()
+        if get_env_value("ELEVENLABS_API_KEY"):
+            chain.append("elevenlabs")
+    except ImportError:
+        pass
+    if _check_neutts_available():
+        chain.append("neutts")
+    return chain
+
+
+def _generate_builtin_tts(
+    provider: str,
+    text: str,
+    file_str: str,
+    tts_config: Dict[str, Any],
+) -> None:
+    """Dispatch to a built-in TTS provider (raises on failure)."""
+    if provider == "elevenlabs":
+        _import_elevenlabs()
+        _generate_elevenlabs(text, file_str, tts_config)
+    elif provider == "openai":
+        _import_openai_client()
+        _generate_openai_tts(text, file_str, tts_config)
+    elif provider == "neutts":
+        if not _check_neutts_available():
+            raise RuntimeError("NeuTTS is not installed")
+        _generate_neutts(text, file_str, tts_config)
+    else:
+        raise ValueError(f"Unsupported TTS fallback provider: {provider}")
+
+
+def _generate_edge_with_fallbacks(
+    text: str,
+    file_str: str,
+    tts_config: Dict[str, Any],
+) -> str:
+    """
+    Try Edge TTS (with one retry), then configured fallbacks.
+
+    Returns the provider name that succeeded.
+    """
+    last_error: Optional[Exception] = None
+    for attempt in range(2):
+        try:
+            _edge_tts_sync(text, file_str, tts_config)
+            if os.path.exists(file_str) and os.path.getsize(file_str) > 0:
+                return "edge"
+        except Exception as exc:
+            last_error = exc
+            logger.warning("Edge TTS attempt %d failed: %s", attempt + 1, exc)
+            if attempt == 0:
+                time.sleep(0.4)
+
+    for fallback in _edge_fallback_provider_chain(tts_config):
+        try:
+            logger.info("Edge TTS unavailable, falling back to %s...", fallback)
+            _generate_builtin_tts(fallback, text, file_str, tts_config)
+            if os.path.exists(file_str) and os.path.getsize(file_str) > 0:
+                return fallback
+        except Exception as exc:
+            last_error = exc
+            logger.warning("TTS fallback %s failed: %s", fallback, exc)
+
+    if last_error:
+        raise last_error
+    raise RuntimeError("TTS generation produced no output")
 
 
 # ===========================================================================
@@ -2229,14 +2320,7 @@ def text_to_speech_tool(
 
             if edge_available:
                 logger.info("Generating speech with Edge TTS...")
-                try:
-                    import concurrent.futures
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-                        pool.submit(
-                            lambda: asyncio.run(_generate_edge_tts(text, file_str, tts_config))
-                        ).result(timeout=60)
-                except RuntimeError:
-                    asyncio.run(_generate_edge_tts(text, file_str, tts_config))
+                provider = _generate_edge_with_fallbacks(text, file_str, tts_config)
             elif _check_neutts_available():
                 logger.info("Edge TTS not available, falling back to NeuTTS (local)...")
                 provider = "neutts"

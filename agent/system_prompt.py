@@ -23,11 +23,15 @@ Pure helpers that read the agent's state.  AIAgent keeps thin forwarders.
 
 from __future__ import annotations
 
+import os
 import json
 from typing import Any, Dict, List, Optional
 
 from agent.prompt_builder import (
     DEFAULT_AGENT_IDENTITY,
+    DAO_AGENT_IDENTITY,
+    DAO_HELP_GUIDANCE,
+    DAO_LEAD_GUIDANCE,
     GOOGLE_MODEL_OPERATIONAL_GUIDANCE,
     HERMES_AGENT_HELP_GUIDANCE,
     KANBAN_GUIDANCE,
@@ -42,6 +46,29 @@ from agent.prompt_builder import (
     TOOL_USE_ENFORCEMENT_MODELS,
 )
 from agent.runtime_cwd import resolve_context_cwd
+
+
+def _env_truthy(name: str) -> bool:
+    return (os.getenv(name) or "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def _is_dao_product(agent: Any) -> bool:
+    """True when this session should present as DAO Agent (not generic Hermes)."""
+    if "DAO_navigate" in agent.valid_tool_names:
+        return True
+    if getattr(agent, "_DAO_lead_guidance", None):
+        return True
+    if _env_truthy("DAO_API_ENABLED"):
+        return True
+    try:
+        from DAO.runtime import get_runtime_context
+
+        ctx = get_runtime_context()
+        if ctx is not None and ctx.space_id is not None:
+            return True
+    except ImportError:
+        pass
+    return False
 
 
 def _ra():
@@ -85,22 +112,26 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     # ── Stable tier ────────────────────────────────────────────────
     stable_parts: List[str] = []
 
-    # Try SOUL.md as primary identity unless the caller explicitly skipped it.
-    # Some execution modes (cron) still want HERMES_HOME persona while keeping
-    # cwd project instructions disabled.
+    _is_dao = _is_dao_product(agent)
+
+    # DAO OS ships with its own identity. SOUL.md in HERMES_HOME often still
+    # contains the default Hermes Agent template and would override DAO Agent.
     _soul_loaded = False
-    if agent.load_soul_identity or not agent.skip_context_files:
+    if not _is_dao and (agent.load_soul_identity or not agent.skip_context_files):
         _soul_content = _r.load_soul_md()
         if _soul_content:
             stable_parts.append(_soul_content)
             _soul_loaded = True
 
-    if not _soul_loaded:
-        # Fallback to hardcoded identity
+    if _is_dao:
+        stable_parts.append(DAO_AGENT_IDENTITY)
+    elif not _soul_loaded:
         stable_parts.append(DEFAULT_AGENT_IDENTITY)
 
-    # Pointer to the hermes-agent skill + docs for user questions about Hermes itself.
-    stable_parts.append(HERMES_AGENT_HELP_GUIDANCE)
+    if _is_dao:
+        stable_parts.append(DAO_HELP_GUIDANCE)
+    else:
+        stable_parts.append(HERMES_AGENT_HELP_GUIDANCE)
 
     # Universal task-completion / no-fabrication guidance.  Applied to ALL
     # models regardless of tool_use_enforcement gating — the failure modes
@@ -129,6 +160,11 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     elif _kanban_guidance is None and "kanban_show" in agent.valid_tool_names:
         # Fallback for code paths that bypass agent_init (rare).
         tool_guidance.append(KANBAN_GUIDANCE)
+    _DAO_guidance = getattr(agent, "_DAO_lead_guidance", None)
+    if _DAO_guidance:
+        tool_guidance.append(_DAO_guidance)
+    elif _DAO_guidance is None and "DAO_navigate" in agent.valid_tool_names:
+        tool_guidance.append(DAO_LEAD_GUIDANCE)
     if tool_guidance:
         stable_parts.append(" ".join(tool_guidance))
 
@@ -359,6 +395,15 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
                 volatile_parts.append(_ext_mem_block)
         except Exception:
             pass
+
+    try:
+        from DAO.prompt import format_space_volatile_context
+
+        _space_block = format_space_volatile_context()
+        if _space_block:
+            volatile_parts.append(_space_block)
+    except Exception:
+        pass
 
     from hermes_time import now as _hermes_now
     now = _hermes_now()

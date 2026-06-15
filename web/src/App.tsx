@@ -30,6 +30,7 @@ import {
   FileText,
   Globe,
   Heart,
+  Inbox,
   KeyRound,
   Menu,
   MessageSquare,
@@ -89,6 +90,10 @@ import ChannelsPage from "@/pages/ChannelsPage";
 import WebhooksPage from "@/pages/WebhooksPage";
 import SystemPage from "@/pages/SystemPage";
 import ChatPage from "@/pages/ChatPage";
+import DAOHomePage from "@/pages/DAO/HomePage";
+import DAOCommandPage from "@/pages/DAO/CommandPage";
+import DAOInboxPage from "@/pages/DAO/InboxPage";
+import DAODrivePage from "@/pages/DAO/DrivePage";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useI18n } from "@/i18n";
@@ -97,20 +102,36 @@ import { PluginPage, PluginSlot, usePlugins } from "@/plugins";
 import type { PluginManifest } from "@/plugins";
 import { useTheme } from "@/themes";
 import { isDashboardEmbeddedChatEnabled } from "@/lib/dashboard-flags";
+import { DAOBrandTitle, isDAOEmbed } from "@/lib/DAO-embed";
 import { api } from "@/lib/api";
 import type { StatusResponse } from "@/lib/api";
 
 function RootRedirect() {
-  return <Navigate to="/sessions" replace />;
+  return <Navigate to={isDAOEmbed() ? "/home" : "/sessions"} replace />;
 }
 
 function UnknownRouteFallback({ pluginsLoading }: { pluginsLoading: boolean }) {
   if (pluginsLoading) {
-    // Render nothing during the plugin-load window — a spinner here would just flash.
     return null;
   }
-  return <Navigate to="/sessions" replace />;
+  return (
+    <Navigate to={isDAOEmbed() ? "/home" : "/sessions"} replace />
+  );
 }
+
+const DAO_ROUTES: Record<string, ComponentType> = {
+  "/home": DAOHomePage,
+  "/command": DAOCommandPage,
+  "/inbox": DAOInboxPage,
+  "/drive": DAODrivePage,
+};
+
+const DAO_NAV: NavItem[] = [
+  { path: "/home", label: "Home", icon: Sparkles },
+  { path: "/command", label: "Command", icon: Activity },
+  { path: "/inbox", label: "Inbox", icon: Inbox },
+  { path: "/drive", label: "Drive", icon: FolderOpen },
+];
 
 const CHAT_NAV_ITEM: NavItem = {
   path: "/chat",
@@ -416,40 +437,52 @@ export default function App() {
     [manifests],
   );
 
-  const builtinRoutes = useMemo(
-    () => ({
+  const DAOEmbed = isDAOEmbed();
+  const embedManifests = DAOEmbed ? [] : manifests;
+
+  const builtinRoutes = useMemo(() => {
+    if (DAOEmbed) {
+      return {
+        "/": RootRedirect,
+        ...DAO_ROUTES,
+        ...(embeddedChat ? { "/chat": ChatRouteSink } : {}),
+      };
+    }
+    return {
       ...BUILTIN_ROUTES_CORE,
       ...(embeddedChat ? { "/chat": ChatRouteSink } : {}),
-    }),
-    [embeddedChat],
-  );
+    };
+  }, [DAOEmbed, embeddedChat]);
 
   const builtinNav = useMemo(() => {
+    if (DAOEmbed) {
+      return embeddedChat ? [...DAO_NAV, CHAT_NAV_ITEM] : [...DAO_NAV];
+    }
     const base = embeddedChat
       ? [CHAT_NAV_ITEM, ...BUILTIN_NAV_REST]
-      : BUILTIN_NAV_REST;
+      : [...BUILTIN_NAV_REST];
     return showTokenAnalytics
       ? base
       : base.filter((n) => n.path !== "/analytics");
-  }, [embeddedChat, showTokenAnalytics]);
+  }, [DAOEmbed, embeddedChat, showTokenAnalytics]);
 
   const sidebarNav = useMemo(
-    () => partitionSidebarNav(builtinNav, manifests),
-    [builtinNav, manifests],
+    () => partitionSidebarNav(builtinNav, embedManifests),
+    [builtinNav, embedManifests],
   );
   const routes = useMemo(
-    () => buildRoutes(builtinRoutes, manifests),
-    [builtinRoutes, manifests],
+    () => buildRoutes(builtinRoutes, embedManifests),
+    [builtinRoutes, embedManifests],
   );
   const pluginTabMeta = useMemo(
     () =>
-      manifests
+      embedManifests
         .filter((m) => !m.tab.hidden)
         .map((m) => ({
           path: m.tab.override ?? m.tab.path,
           label: m.label,
         })),
-    [manifests],
+    [embedManifests],
   );
 
   const layoutVariant = theme.layoutVariant ?? "standard";
@@ -481,18 +514,23 @@ export default function App() {
     <ProfileProvider>
     <div
       data-layout-variant={layoutVariant}
-      className="flex h-dvh max-h-dvh min-h-0 flex-col overflow-hidden bg-black text-text-primary antialiased"
+      data-DAO-embed={isDAOEmbed() ? "true" : undefined}
+      className={cn(
+        "flex h-dvh max-h-dvh min-h-0 flex-col overflow-hidden text-text-primary antialiased",
+        isDAOEmbed() ? "bg-transparent" : "bg-black",
+      )}
     >
       <SelectionSwitcher />
-      <Backdrop />
+      {isDAOEmbed() ? null : <Backdrop />}
       <PluginSlot name="backdrop" />
 
       <header
         className={cn(
           "lg:hidden fixed top-0 left-0 right-0 z-40 min-h-14",
           "flex items-center gap-2 px-4 py-2",
-          "border-b border-current/20",
-          "bg-background-base/90 backdrop-blur-sm",
+          isDAOEmbed()
+            ? "border-b border-primary/12 bg-void-surface/80 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+            : "border-b border-current/20 bg-background-base/90 backdrop-blur-sm",
         )}
         style={{
           background: "var(--component-header-background)",
@@ -507,16 +545,20 @@ export default function App() {
           aria-label={t.app.openNavigation}
           aria-expanded={mobileOpen}
           aria-controls="app-sidebar"
-          className="text-text-secondary hover:text-midground"
+          className="text-text-secondary hover:text-primary"
         >
           <Menu />
         </Button>
 
         <Typography
-          className="font-bold text-[0.95rem] leading-[0.95] tracking-[0.05em] text-midground"
-          style={{ mixBlendMode: "plus-lighter" }}
+          className={cn(
+            isDAOEmbed()
+              ? "font-display text-sm font-semibold tracking-normal text-text-primary"
+              : "font-bold text-[0.95rem] leading-[0.95] tracking-[0.05em] text-midground",
+          )}
+          style={isDAOEmbed() ? undefined : { mixBlendMode: "plus-lighter" }}
         >
-          {t.app.brand}
+          {isDAOEmbed() ? DAOBrandTitle() : t.app.brand}
         </Typography>
       </header>
 
@@ -533,7 +575,7 @@ export default function App() {
       )}
 
       <PluginSlot name="header-banner" />
-      <ProfileScopeBanner />
+      {DAOEmbed ? null : <ProfileScopeBanner />}
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden pt-14 lg:pt-0">
         <div className="flex min-h-0 min-w-0 flex-1">
@@ -541,7 +583,8 @@ export default function App() {
             id="app-sidebar"
             aria-label={t.app.navigation}
             className={cn(
-              "fixed top-0 left-0 z-50 flex h-dvh max-h-dvh w-64 min-h-0 flex-col",
+              "fixed top-0 left-0 z-50 flex h-dvh max-h-dvh min-h-0 flex-col",
+              isDAOEmbed() ? "w-60" : "w-64",
               "border-r border-current/20",
               "bg-background-base/95 backdrop-blur-sm",
               "transition-[transform] duration-200 ease-out",
@@ -559,7 +602,9 @@ export default function App() {
             <div
               className={cn(
                 "flex h-14 shrink-0 items-center gap-2",
-                "border-b border-current/20",
+                isDAOEmbed()
+                  ? "border-b border-primary/10"
+                  : "border-b border-current/20",
                 collapsed ? "lg:justify-center lg:px-0" : "px-4 justify-between",
               )}
             >
@@ -572,12 +617,22 @@ export default function App() {
                 <PluginSlot name="header-left" />
 
                 <Typography
-                  className="font-bold text-[1.125rem] leading-[0.95] tracking-[0.0525rem] text-midground uppercase"
-                  style={{ mixBlendMode: "plus-lighter" }}
+                  className={cn(
+                    isDAOEmbed()
+                      ? "font-display text-base font-semibold tracking-normal text-text-primary whitespace-nowrap"
+                      : "font-bold text-[1.125rem] leading-[0.95] tracking-[0.0525rem] text-midground uppercase",
+                  )}
+                  style={isDAOEmbed() ? undefined : { mixBlendMode: "plus-lighter" }}
                 >
-                  Hermes
-                  <br />
-                  Agent
+                  {isDAOEmbed() ? (
+                    DAOBrandTitle()
+                  ) : (
+                    <>
+                      Hermes
+                      <br />
+                      Agent
+                    </>
+                  )}
                 </Typography>
               </div>
 
@@ -608,7 +663,9 @@ export default function App() {
               </Button>
             </div>
 
-            <ProfileSwitcher collapsed={isDesktopCollapsed} />
+            {DAOEmbed ? null : (
+              <ProfileSwitcher collapsed={isDesktopCollapsed} />
+            )}
 
             <nav
               className="min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden border-t border-current/10 py-2"
@@ -660,12 +717,14 @@ export default function App() {
               )}
             </nav>
 
-            <SidebarSystemActions
-              collapsed={isDesktopCollapsed}
-              onNavigate={closeMobile}
-              status={sidebarStatus}
-              tooltipWarmRef={tooltipWarmRef}
-            />
+            {DAOEmbed ? null : (
+              <SidebarSystemActions
+                collapsed={isDesktopCollapsed}
+                onNavigate={closeMobile}
+                status={sidebarStatus}
+                tooltipWarmRef={tooltipWarmRef}
+              />
+            )}
 
             <div
               className={cn(
@@ -690,7 +749,9 @@ export default function App() {
                   label={t.theme?.switchTheme ?? "Switch theme"}
                   tooltipWarmRef={tooltipWarmRef}
                 >
-                  <ThemeSwitcher collapsed={isDesktopCollapsed} dropUp />
+                  {!isDAOEmbed() && (
+                    <ThemeSwitcher collapsed={isDesktopCollapsed} dropUp />
+                  )}
                 </SidebarIconWithTooltip>
 
                 <SidebarIconWithTooltip
@@ -710,7 +771,7 @@ export default function App() {
               )}
             >
               <AuthWidget />
-              <SidebarFooter status={sidebarStatus} />
+              {DAOEmbed ? null : <SidebarFooter status={sidebarStatus} />}
             </div>
           </aside>
 
@@ -814,6 +875,7 @@ function SidebarNavLink({
   const { path, label, labelKey, icon: Icon } = item;
   const liRef = useRef<HTMLLIElement>(null);
   const [hovered, setHovered] = useState(false);
+  const DAO = isDAOEmbed();
 
   const navLabel = labelKey
     ? ((t.app.nav as Record<string, string>)[labelKey] ?? label)
@@ -824,6 +886,7 @@ function SidebarNavLink({
       ref={liRef}
       onMouseEnter={collapsed ? () => setHovered(true) : undefined}
       onMouseLeave={collapsed ? () => setHovered(false) : undefined}
+      className={DAO ? "px-2" : undefined}
     >
       <NavLink
         to={path}
@@ -835,22 +898,42 @@ function SidebarNavLink({
         className={({ isActive }) =>
           cn(
             "group/nav relative flex items-center gap-3",
-            "px-5 py-2.5",
-            "font-mondwest text-display uppercase text-sm tracking-[0.12em]",
-            "whitespace-nowrap transition-colors cursor-pointer",
-            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-midground",
-            isActive
-              ? "text-midground"
-              : "text-text-secondary hover:text-midground",
+            DAO
+              ? cn(
+                  "mx-0 rounded-full px-3 py-2",
+                  "font-display text-sm font-medium tracking-normal normal-case",
+                  "transition-[background-color,color] duration-150",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                  isActive
+                    ? "bg-primary/12 text-primary"
+                    : "text-text-secondary hover:bg-void-elevated/80 hover:text-text-primary",
+                )
+              : cn(
+                  "px-5 py-2.5",
+                  "font-mondwest text-display uppercase text-sm tracking-[0.12em]",
+                  "whitespace-nowrap transition-colors cursor-pointer",
+                  "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-midground",
+                  isActive
+                    ? "text-midground"
+                    : "text-text-secondary hover:text-midground",
+                ),
           )
         }
-        style={{
-          clipPath: "var(--component-tab-clip-path)",
-        }}
+        style={
+          DAO
+            ? undefined
+            : { clipPath: "var(--component-tab-clip-path)" }
+        }
       >
         {({ isActive }) => (
           <>
-            <Icon className="h-3.5 w-3.5 shrink-0" />
+            <Icon
+              className={cn(
+                "shrink-0",
+                DAO ? "size-4" : "h-3.5 w-3.5",
+                DAO && isActive && "text-primary",
+              )}
+            />
 
             <span
               className={cn(
@@ -861,17 +944,21 @@ function SidebarNavLink({
               {navLabel}
             </span>
 
-            <span
-              aria-hidden
-              className="absolute inset-y-0.5 left-1.5 right-1.5 bg-midground opacity-0 pointer-events-none transition-opacity duration-200 group-hover/nav:opacity-5"
-            />
+            {!DAO && (
+              <>
+                <span
+                  aria-hidden
+                  className="absolute inset-y-0.5 left-1.5 right-1.5 bg-midground opacity-0 pointer-events-none transition-opacity duration-200 group-hover/nav:opacity-5"
+                />
 
-            {isActive && (
-              <span
-                aria-hidden
-                className="absolute left-0 top-0 bottom-0 w-px bg-midground"
-                style={{ mixBlendMode: "plus-lighter" }}
-              />
+                {isActive && (
+                  <span
+                    aria-hidden
+                    className="absolute left-0 top-0 bottom-0 w-px bg-midground"
+                    style={{ mixBlendMode: "plus-lighter" }}
+                  />
+                )}
+              </>
             )}
           </>
         )}

@@ -912,6 +912,48 @@ class TestRunJobSessionPersistence:
         fake_db.close.assert_called_once()
         mock_agent.close.assert_called_once()
 
+    def test_run_job_session_db_uses_bound_hermes_home(self, tmp_path):
+        """Cron must persist to the active HERMES_HOME, not import-time DEFAULT_DB_PATH."""
+        job = {"id": "test-job", "name": "test", "prompt": "hello"}
+        space_home = tmp_path / "space-vpc"
+        space_home.mkdir()
+        captured: dict[str, object] = {}
+
+        class _CapturingSessionDB:
+            def __init__(self, db_path=None, read_only=False):
+                captured["db_path"] = db_path
+
+            def close(self):
+                pass
+
+            def end_session(self, *_args, **_kwargs):
+                pass
+
+            def set_session_title(self, *_args, **_kwargs):
+                pass
+
+        with patch("cron.scheduler._hermes_home", space_home), \
+             patch("cron.scheduler._resolve_origin", return_value=None), \
+             patch("dotenv.load_dotenv"), \
+             patch("hermes_state.SessionDB", _CapturingSessionDB), \
+             patch(
+                 "hermes_cli.runtime_provider.resolve_runtime_provider",
+                 return_value={
+                     "api_key": "test-key",
+                     "base_url": "https://example.invalid/v1",
+                     "provider": "openrouter",
+                     "api_mode": "chat_completions",
+                 },
+             ), \
+             patch("run_agent.AIAgent") as mock_agent_cls:
+            mock_agent = MagicMock()
+            mock_agent.run_conversation.return_value = {"final_response": "ok"}
+            mock_agent_cls.return_value = mock_agent
+
+            run_job(job)
+
+        assert captured["db_path"] == space_home / "state.db"
+
     def test_run_job_titles_cron_session_from_job_not_important_hint(self, tmp_path):
         # The cron session's first message is the injected "[IMPORTANT: …]"
         # hint, which used to surface as the sidebar/history row label. run_job

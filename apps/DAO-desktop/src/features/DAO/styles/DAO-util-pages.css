@@ -1,0 +1,4813 @@
+/* Skills · Messaging · Artifacts — minimal utility shell */
+
+/* ── Spacing tokens (shared across toolbar + body) ─────────────────────── */
+
+.DAO-util-page {
+  --DAO-util-inset-x: clamp(1rem, 2.5vw, 1.5rem);
+  /* The page sits below the in-flow VOID company topbar; only the Hermes
+     titlebar control band (~34px) overlays the page top, so clear just that. */
+  --DAO-util-toolbar-top: calc(var(--hermes-titlebar-band-height, 34px) + 0.5rem);
+  --DAO-util-content-top: 0.375rem;
+}
+
+/* ── Page shell ─────────────────────────────────────────────────────────── */
+
+.DAO-util-page .DAO-util-page-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+  background: color-mix(in srgb, var(--void-surface, #0a0a0a) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.DAO-util-page .DAO-util-page-body {
+  display: flex;
+  flex-direction: column;
+  background: var(--void-surface, #0a0a0a);
+}
+
+.DAO-util-page .DAO-util-page-body > .DAO-messaging-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ── Page headline (title + description) ───────────────────────────────── */
+
+.DAO-util-page-headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding: var(--DAO-util-toolbar-top) var(--DAO-util-inset-x) 0.75rem;
+}
+
+.DAO-util-page-headline-text {
+  min-width: 0;
+}
+
+.DAO-util-page-title {
+  margin: 0;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-util-page-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-util-page-headline-trailing {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* When a headline is present the toolbar sits tight beneath it. */
+.DAO-util-page-header[data-has-headline='true'] .DAO-util-page-toolbar {
+  padding-top: 0;
+}
+
+.DAO-util-page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  min-height: 2.5rem;
+  padding: var(--DAO-util-toolbar-top) var(--DAO-util-inset-x) 0.75rem;
+}
+
+.DAO-util-toolbar-primary {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.DAO-util-toolbar-tabs {
+  flex-shrink: 0;
+}
+
+.DAO-util-toolbar-filters {
+  display: flex;
+  min-width: 0;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.DAO-util-search-wrap {
+  display: flex;
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  flex: 1 1 16rem;
+  align-items: center;
+  justify-content: flex-end;
+  max-width: 26rem;
+  margin-left: auto;
+}
+
+.DAO-util-search-wrap--solo {
+  flex: 1 1 auto;
+  max-width: none;
+  justify-content: stretch;
+}
+
+.DAO-util-search-field {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.DAO-util-page-scroll {
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: auto;
+  padding-top: calc(var(--DAO-util-content-top) + 0.375rem);
+  padding-bottom: 3rem;
+  scroll-behavior: smooth;
+}
+
+.DAO-util-page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  max-width: none;
+}
+
+.DAO-util-page-content--wide {
+  max-width: none;
+}
+
+.DAO-util-page-content--tight {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: none;
+}
+
+/* ── Section labels ─────────────────────────────────────────────────────── */
+
+.DAO-util-section-label {
+  margin: 0 0 0.75rem;
+  padding-left: 0.0625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-util-section-block + .DAO-util-section-block {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--void-border, #1a1a1a);
+}
+
+/* ── Action rows (skills / toolsets) ────────────────────────────────────── */
+
+.DAO-util-row-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.DAO-util-row-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.875rem 1.25rem;
+  margin-inline: -0.625rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  padding: 0.6875rem 0.625rem;
+  transition:
+    background 120ms ease,
+    opacity 120ms ease;
+}
+
+.DAO-util-row-card:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.DAO-util-row-card--stacked {
+  display: block;
+  padding: 0.6875rem 0.625rem;
+}
+
+.DAO-util-row-card-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-util-row-card-desc {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-muted, #525252);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.DAO-util-row-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── Capability cards (skills grid · toolsets) ──────────────────────────── */
+
+.DAO-util-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.625rem;
+}
+
+.DAO-util-card-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.DAO-util-capability-card {
+  border: 1px solid var(--void-border, #1a1a1a);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.015);
+  padding: 0.875rem 0.9375rem;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.DAO-util-capability-card:hover {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.DAO-util-capability-card--row {
+  padding: 0.9375rem 1rem;
+}
+
+.DAO-util-capability-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.DAO-util-capability-card-title {
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-util-capability-card-desc {
+  margin-top: 0.4375rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-muted, #525252);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.DAO-util-capability-card--row .DAO-util-capability-card-desc {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.DAO-util-text-action {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text-muted, #525252);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition:
+    color 120ms ease,
+    text-decoration-color 120ms ease;
+}
+
+.DAO-util-text-action:hover {
+  color: var(--text-primary, #fff);
+  text-decoration-color: currentColor;
+}
+
+.DAO-util-text-action--ok {
+  color: rgba(171, 159, 242, 0.85);
+}
+
+.DAO-util-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3125rem;
+  margin-top: 0.75rem;
+}
+
+.DAO-util-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.4375rem;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+/* ── Empty states ───────────────────────────────────────────────────────── */
+
+.DAO-util-empty {
+  display: grid;
+  min-height: 20rem;
+  place-items: center;
+  padding: var(--DAO-util-content-top) 1.25rem 2.5rem;
+  text-align: center;
+}
+
+.DAO-util-empty-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-util-empty-desc {
+  margin-top: 0.25rem;
+  max-width: 32ch;
+  margin-inline: auto;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-util-empty--lead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.DAO-util-empty-powered {
+  margin-top: 0.25rem;
+}
+
+.DAO-company-lead-avatar--empty {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.25rem;
+  border-radius: 0.875rem;
+}
+
+/* ── Messaging ──────────────────────────────────────────────────────────── */
+
+.DAO-messaging-layout {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: 17rem minmax(0, 1fr);
+  background: var(--void, #000);
+}
+
+.DAO-messaging-sidebar {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--void-border, #1a1a1a);
+  background:
+    linear-gradient(180deg, rgba(171, 159, 242, 0.04) 0%, transparent 42%),
+    color-mix(in srgb, var(--void-surface, #0a0a0a) 98%, rgba(255, 255, 255, 0.02));
+}
+
+.DAO-messaging-sidebar-head {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem var(--DAO-util-inset-x) 0.875rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--void-border, #1a1a1a) 88%, rgba(171, 159, 242, 0.1));
+}
+
+.DAO-messaging-sidebar-head-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.DAO-messaging-sidebar-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-messaging-sidebar-sub {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-messaging-sidebar-count {
+  flex-shrink: 0;
+  min-width: 1.375rem;
+  margin-top: 0.0625rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.28);
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-messaging-sidebar-scroll {
+  position: relative;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.DAO-messaging-sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.75rem var(--DAO-util-inset-x) 1.125rem;
+  list-style: none;
+}
+
+.DAO-messaging-sidebar-item {
+  margin: 0;
+  padding: 0;
+}
+
+.DAO-messaging-sidebar .DAO-util-side-nav-item {
+  align-items: center;
+  gap: 0.6875rem;
+  min-height: 3rem;
+  padding: 0.5625rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition:
+    color 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.DAO-messaging-sidebar .DAO-util-side-nav-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--void-border, #1a1a1a);
+}
+
+.DAO-messaging-sidebar .DAO-util-side-nav-item--active,
+.DAO-messaging-sidebar .DAO-util-side-nav-item[data-active='true'] {
+  color: var(--text-primary, #fff);
+  background: rgba(171, 159, 242, 0.1);
+  border-color: rgba(171, 159, 242, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(171, 159, 242, 0.12);
+}
+
+.DAO-messaging-sidebar .DAO-util-side-nav-item--active .DAO-util-side-nav-title,
+.DAO-messaging-sidebar .DAO-util-side-nav-item[data-active='true'] .DAO-util-side-nav-title {
+  color: var(--text-primary, #fff);
+}
+
+.DAO-messaging-sidebar .DAO-util-side-nav-title {
+  font-size: 0.8125rem;
+  line-height: 1.3;
+}
+
+.DAO-messaging-sidebar .DAO-util-side-nav-hint {
+  margin-top: 0.1875rem;
+  font-size: 0.6875rem;
+  line-height: 1.25;
+}
+
+.DAO-messaging-sidebar .DAO-util-side-nav-trailing {
+  margin-left: 0.125rem;
+}
+
+/* Platform list scrollbar — slightly more visible than generic util scrollbars */
+.DAO-messaging-sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.DAO-messaging-sidebar-scrollbar::-webkit-scrollbar {
+  width: 0.4375rem;
+  height: 0.4375rem;
+}
+
+.DAO-messaging-sidebar-scrollbar::-webkit-scrollbar-track,
+.DAO-messaging-sidebar-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.DAO-messaging-sidebar-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.16);
+  background-clip: padding-box;
+}
+
+.DAO-messaging-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+  background-clip: padding-box;
+}
+
+.DAO-messaging-sidebar-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.DAO-messaging-panel {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 45% at 50% -8%, rgba(171, 159, 242, 0.08), transparent 58%),
+    var(--void-surface, #0a0a0a);
+}
+
+.DAO-messaging-panel-scroll {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
+.DAO-messaging-detail {
+  width: 100%;
+  max-width: none;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem) var(--DAO-util-inset-x) 2.25rem;
+}
+
+.DAO-messaging-hero-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1.125rem 1.25rem;
+  overflow: hidden;
+  border-radius: var(--radius-void-compact, 12px);
+  border: 1px solid var(--void-border, #1a1a1a);
+  background:
+    linear-gradient(155deg, rgba(171, 159, 242, 0.08) 0%, rgba(171, 159, 242, 0.02) 32%, rgba(255, 255, 255, 0.02) 100%),
+    color-mix(in srgb, var(--void-surface, #0a0a0a) 94%, rgba(255, 255, 255, 0.03));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.DAO-messaging-hero-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(171, 159, 242, 0.4) 40%,
+    rgba(171, 159, 242, 0.15) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.DAO-messaging-hero-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.DAO-messaging-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.DAO-messaging-detail-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-messaging-detail-desc {
+  margin: 0.4375rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #a3a3a3);
+  max-width: 52ch;
+}
+
+.DAO-messaging-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4375rem;
+  margin-top: 0.875rem;
+}
+
+.DAO-messaging-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.DAO-messaging-pill--good {
+  border-color: rgba(74, 222, 128, 0.2);
+  background: rgba(74, 222, 128, 0.08);
+  color: #86efac;
+}
+
+.DAO-messaging-pill--warn {
+  border-color: rgba(251, 191, 36, 0.2);
+  background: rgba(251, 191, 36, 0.08);
+  color: #fcd34d;
+}
+
+.DAO-messaging-pill--bad {
+  border-color: rgba(248, 113, 113, 0.22);
+  background: rgba(248, 113, 113, 0.08);
+  color: #fca5a5;
+}
+
+.DAO-messaging-pill--muted {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted, #525252);
+}
+
+.DAO-messaging-hint {
+  margin: 0.625rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-messaging-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(248, 113, 113, 0.18);
+  background: rgba(248, 113, 113, 0.06);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--signal-red, #f87171);
+}
+
+.DAO-messaging-setup-card {
+  padding: 1rem 1.125rem;
+  border-radius: var(--radius-void-compact, 12px);
+  border: 1px solid var(--void-border, #1a1a1a);
+  background:
+    linear-gradient(160deg, rgba(171, 159, 242, 0.04) 0%, transparent 45%),
+    rgba(255, 255, 255, 0.02);
+}
+
+.DAO-messaging-surface {
+  padding: 1rem 1.125rem;
+  border-radius: var(--radius-void-compact, 12px);
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-messaging-setup-card-lead {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-messaging-setup-card-action {
+  margin-top: 0.875rem;
+}
+
+.DAO-messaging-section {
+  margin-top: 1.75rem;
+}
+
+.DAO-messaging-section:first-of-type {
+  margin-top: 0;
+}
+
+.DAO-messaging-section-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-messaging-section-empty {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  border: 1px dashed color-mix(in srgb, var(--void-border, #1a1a1a) 88%, rgba(171, 159, 242, 0.2));
+  background: rgba(255, 255, 255, 0.015);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-messaging-field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.DAO-messaging-field-card {
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.22);
+  transition: border-color 120ms ease;
+}
+
+.DAO-messaging-field-card:focus-within {
+  border-color: rgba(171, 159, 242, 0.35);
+  box-shadow: 0 0 0 1px rgba(171, 159, 242, 0.12);
+}
+
+.DAO-messaging-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-messaging-field-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.375rem 0.75rem;
+}
+
+.DAO-messaging-field-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-messaging-field-badge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(171, 159, 242, 0.9);
+}
+
+.DAO-messaging-field-help {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-messaging-field-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.DAO-messaging-field-input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.DAO-messaging-advanced-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 999px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.DAO-messaging-advanced-toggle:hover {
+  color: var(--text-primary, #fff);
+  border-color: rgba(171, 159, 242, 0.28);
+  background: rgba(171, 159, 242, 0.06);
+}
+
+.DAO-messaging-save-dock {
+  flex-shrink: 0;
+  border-top: 1px solid color-mix(in srgb, var(--void-border, #1a1a1a) 88%, rgba(171, 159, 242, 0.12));
+  background: color-mix(in srgb, var(--void-surface, #0a0a0a) 82%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 0.75rem var(--DAO-util-inset-x);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.DAO-messaging-save-dock-inner {
+  display: flex;
+  width: 100%;
+  max-width: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.625rem 0.75rem;
+}
+
+.DAO-messaging-save-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: auto;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-messaging-save-hint::before {
+  content: '';
+  flex-shrink: 0;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: var(--primary, #ab9ff2);
+  box-shadow: 0 0 0.5rem rgba(171, 159, 242, 0.45);
+}
+
+/* ── Artifacts ──────────────────────────────────────────────────────────── */
+
+.DAO-artifacts-section-head {
+  display: flex;
+  align-items: center;
+  min-height: 1.75rem;
+  margin-bottom: 0.75rem;
+  padding-block: 0.25rem;
+}
+
+.DAO-artifacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.75rem;
+}
+
+.DAO-artifact-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.DAO-artifact-card:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.DAO-artifact-card-media {
+  position: relative;
+  display: flex;
+  height: 9rem;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.375rem;
+}
+
+.DAO-artifact-card-body {
+  padding: 0.625rem 0.75rem 0.75rem;
+}
+
+.DAO-artifact-card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-artifact-card-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 0.25rem;
+  font-size: 0.625rem;
+  line-height: 1.4;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-artifact-table-shell {
+  overflow-x: auto;
+}
+
+.DAO-artifact-table {
+  width: 100%;
+  min-width: 40rem;
+  table-layout: fixed;
+  text-align: left;
+  font-size: 0.8125rem;
+}
+
+.DAO-artifact-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--void-surface, #0a0a0a);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-artifact-table th {
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+  font-weight: 600;
+}
+
+.DAO-artifact-table tbody tr {
+  border-bottom: 1px solid rgba(26, 26, 26, 0.7);
+  transition: background 100ms ease;
+}
+
+.DAO-artifact-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.DAO-artifact-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.DAO-artifacts-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.625rem;
+  min-height: 1.5rem;
+  font-size: 0.625rem;
+  color: var(--text-muted, #525252);
+}
+
+/* ── Chip switch (pill segmented control) ───────────────────────────────── */
+
+.DAO-util-chip-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.125rem;
+  border-radius: var(--radius-void-pill, 9999px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--void-border, #1a1a1a);
+}
+
+.DAO-util-chip-switch-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  min-height: 1.75rem;
+  padding: 0.25rem 0.6875rem;
+  border: none;
+  border-radius: var(--radius-void-pill, 9999px);
+  background: transparent;
+  color: var(--text-muted, #525252);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    background 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.DAO-util-chip-switch-item:hover {
+  color: var(--text-primary, #fff);
+}
+
+.DAO-util-chip-switch-item:focus-visible {
+  outline: 2px solid var(--primary, #ab9ff2);
+  outline-offset: 1px;
+}
+
+.DAO-util-chip-switch-item--active,
+.DAO-util-chip-switch-item[data-active='true'] {
+  color: var(--text-primary, #fff);
+  background: rgba(255, 255, 255, 0.09);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.DAO-util-chip-switch-item-meta {
+  min-width: 1rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-util-chip-switch-item--active .DAO-util-chip-switch-item-meta,
+.DAO-util-chip-switch-item[data-active='true'] .DAO-util-chip-switch-item-meta {
+  color: rgba(171, 159, 242, 0.75);
+}
+
+/* ── Filter dropdown ──────────────────────────────────────────────────────── */
+
+.DAO-util-filter-select {
+  width: auto;
+  min-width: 7.5rem;
+  max-width: 11rem;
+  height: 1.75rem;
+  padding-inline: 0.625rem 0.4375rem;
+  border-color: var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-util-filter-select:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary, #fff);
+}
+
+.DAO-util-filter-select-menu {
+  min-width: 10rem;
+}
+
+.DAO-util-filter-select-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.DAO-util-filter-select-count {
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted, #525252);
+}
+
+/* ── Sidebar nav (messaging) ──────────────────────────────────────────── */
+
+.DAO-util-side-nav-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary, #a3a3a3);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color 100ms ease,
+    background 100ms ease;
+}
+
+.DAO-util-side-nav-item:hover {
+  color: var(--text-primary, #fff);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.DAO-util-side-nav-item--active,
+.DAO-util-side-nav-item[data-active='true'] {
+  color: var(--text-primary, #fff);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.DAO-util-side-nav-avatar {
+  flex-shrink: 0;
+}
+
+.DAO-util-side-nav-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.DAO-util-side-nav-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.DAO-util-side-nav-hint {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 0.0625rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-util-side-nav-item--active .DAO-util-side-nav-hint,
+.DAO-util-side-nav-item[data-active='true'] .DAO-util-side-nav-hint {
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-util-side-nav-trailing {
+  flex-shrink: 0;
+}
+
+/* Thin VOID scrollbar for utility panes (sidebar lists, etc.) */
+.DAO-util-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
+.DAO-util-scrollbar::-webkit-scrollbar {
+  width: 0.375rem;
+  height: 0.375rem;
+}
+
+.DAO-util-scrollbar::-webkit-scrollbar-track,
+.DAO-util-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.DAO-util-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.12);
+  background-clip: padding-box;
+}
+
+.DAO-util-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+  background-clip: padding-box;
+}
+
+.DAO-util-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+@media (max-width: 1024px) {
+  .DAO-util-page-toolbar {
+    flex-wrap: wrap;
+    align-items: stretch;
+    row-gap: 0.5rem;
+  }
+
+  .DAO-util-toolbar-primary {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .DAO-util-search-wrap {
+    flex: 1 1 100%;
+    order: 2;
+    max-width: none;
+    margin-left: 0;
+  }
+
+  .DAO-util-chip-switch {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .DAO-util-chip-switch::-webkit-scrollbar {
+    display: none;
+  }
+
+  .DAO-messaging-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .DAO-messaging-sidebar {
+    max-height: 13rem;
+    border-right: none;
+    border-bottom: 1px solid var(--void-border, #1a1a1a);
+  }
+
+  .DAO-messaging-sidebar-head {
+    padding-block: 0.75rem 0.625rem;
+    padding-inline: var(--DAO-util-inset-x);
+  }
+
+  .DAO-messaging-sidebar-scroll {
+    flex: 0 0 auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-gutter: auto;
+  }
+
+  .DAO-messaging-sidebar-list {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 0.625rem var(--DAO-util-inset-x) 0.75rem;
+    scroll-padding-inline: var(--DAO-util-inset-x);
+  }
+
+  .DAO-messaging-sidebar .DAO-util-side-nav-item {
+    width: auto;
+    min-width: 10.5rem;
+    min-height: 2.75rem;
+    flex-shrink: 0;
+  }
+
+  .DAO-messaging-hero-card {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .DAO-messaging-hero-top {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Company pages (Home · Command · Inbox · Drive · Space) ─────────────── */
+
+.DAO-company-page {
+  /* Company routes sit below the in-flow DAOTopbar — no titlebar band. */
+  --DAO-util-toolbar-top: 1.125rem;
+  --DAO-util-content-top: 0.5rem;
+}
+
+.DAO-company-scroll-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  padding-inline: var(--DAO-util-inset-x);
+  padding-bottom: 3rem;
+}
+
+.DAO-company-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.DAO-company-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-stat-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-stat-strip--home {
+  margin-top: 0.25rem;
+}
+
+.DAO-company-stat--active {
+  border-color: rgba(171, 159, 242, 0.28);
+  background: rgba(171, 159, 242, 0.06);
+}
+
+.DAO-company-stat--warn {
+  border-color: rgba(251, 191, 36, 0.28);
+  background: rgba(251, 191, 36, 0.06);
+}
+
+.DAO-space-home-scroll .DAO-company-scroll-inner {
+  gap: 1.5rem;
+}
+
+.DAO-space-home-hero--brief {
+  margin-bottom: 0;
+}
+
+.DAO-space-home-dashboard--brief {
+  gap: 0.875rem;
+}
+
+.DAO-space-floor-preview-head--brief,
+.DAO-space-home-activity-head--brief {
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.DAO-space-home-briefing-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.DAO-space-floor-preview-link {
+  padding: 0;
+  border: none;
+  font-size: 0.75rem;
+}
+
+.DAO-space-home-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.DAO-space-home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+}
+
+.DAO-space-home-dashboard {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .DAO-space-home-dashboard {
+    grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+.DAO-space-home-dashboard-main,
+.DAO-space-home-dashboard-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.DAO-space-home-lead-card {
+  padding: 1rem 1.125rem;
+  border-radius: 12px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-space-home-lead-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.DAO-space-home-lead-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 10px;
+  background: rgba(171, 159, 242, 0.12);
+  color: var(--primary, #ab9ff2);
+  flex-shrink: 0;
+}
+
+.DAO-space-home-lead-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.DAO-space-home-lead-name {
+  margin: 0.125rem 0 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-space-home-lead-tier {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-space-home-lead-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(171, 159, 242, 0.25);
+  background: rgba(171, 159, 242, 0.08);
+  padding: 0.2rem 0.5rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary, #ab9ff2);
+  flex-shrink: 0;
+}
+
+.DAO-space-home-lead-copy {
+  margin: 1rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-space-home-lead-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.DAO-space-home-activity {
+  display: flex;
+  flex-direction: column;
+  min-height: 12rem;
+  border-radius: 12px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+
+.DAO-space-home-activity-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+}
+
+.DAO-space-home-activity-title {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-space-home-activity-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #a3a3a3);
+  text-decoration: none;
+}
+
+.DAO-space-home-activity-link:hover {
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-space-home-activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+.DAO-space-home-activity-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+}
+
+.DAO-space-home-activity-item:last-child {
+  border-bottom: none;
+}
+
+.DAO-space-home-activity-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--text-muted, #525252);
+  font-size: 0.8125rem;
+}
+
+.DAO-space-home-activity-empty span {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-space-home-handoff-route {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-space-home-handoff-route time {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-space-home-handoff-subject {
+  margin: 0.35rem 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-space-home-actions-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.DAO-space-home-section-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-space-home-action-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+@media (min-width: 640px) {
+  .DAO-space-home-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .DAO-space-home-action-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.DAO-space-home-action-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.DAO-space-home-action-card:hover {
+  border-color: rgba(171, 159, 242, 0.28);
+  background: rgba(171, 159, 242, 0.06);
+}
+
+.DAO-space-home-action-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.DAO-space-home-action-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-space-home-action-desc {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-space-home-briefing {
+  padding-bottom: 0.5rem;
+}
+
+.DAO-space-home-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 0.25rem;
+}
+
+.DAO-space-home-greeting--intro {
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.DAO-space-home-greeting--intro .DAO-company-lead-avatar--empty {
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: 0.25rem;
+  font-size: 1.25rem;
+}
+
+.DAO-space-home-greeting--intro .DAO-space-home-eyebrow {
+  margin-top: 0.25rem;
+}
+
+.DAO-space-home-greeting--intro .DAO-space-home-headline {
+  font-size: clamp(1.375rem, 3vw, 1.75rem);
+}
+
+.DAO-space-home-powered {
+  margin: 0.125rem 0 0;
+}
+
+.DAO-space-home-greeting--intro .DAO-space-home-sub {
+  margin-top: 0.25rem;
+  max-width: 28rem;
+}
+
+.DAO-space-home-eyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-space-home-headline {
+  margin: 0;
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-space-home-greeting-note {
+  margin: 0.375rem 0 0;
+  font-size: 0.6875rem;
+  color: var(--text-muted, #737373);
+}
+
+.DAO-space-home-sub {
+  margin: 0;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-space-floor-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.DAO-space-floor-preview-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.DAO-space-floor-preview-title {
+  margin: 0.25rem 0 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-space-floor-preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #a3a3a3);
+  text-decoration: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.DAO-space-floor-preview-link:hover {
+  border-color: rgba(171, 159, 242, 0.35);
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-space-floor-preview-card {
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-space-floor-preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+}
+
+.DAO-space-floor-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-space-floor-live--on {
+  color: #4ade80;
+}
+
+.DAO-space-floor-pending {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fcd34d;
+}
+
+.DAO-space-floor-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--void-border, #1a1a1a);
+}
+
+.DAO-space-floor-lane {
+  display: flex;
+  min-height: 5.5rem;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-left: 2px solid transparent;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.DAO-space-floor-lane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.DAO-space-floor-status {
+  border-radius: 999px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  padding: 0.125rem 0.375rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.DAO-space-floor-status--idle {
+  color: var(--text-muted, #525252);
+}
+
+.DAO-space-floor-status--active {
+  border-color: rgba(171, 159, 242, 0.28);
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-space-floor-status--reused {
+  border-color: rgba(34, 197, 94, 0.28);
+  color: #4ade80;
+}
+
+.DAO-space-floor-status--pending {
+  border-color: rgba(251, 191, 36, 0.28);
+  color: #fcd34d;
+}
+
+.DAO-space-floor-task {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-space-floor-empty {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-action-grid--home {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 900px) {
+  .DAO-company-action-grid--home {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.DAO-company-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+@media (min-width: 768px) {
+  .DAO-company-action-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.DAO-company-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    transform 120ms ease;
+}
+
+.DAO-company-action-card:hover {
+  border-color: rgba(171, 159, 242, 0.28);
+  background: rgba(171, 159, 242, 0.06);
+}
+
+.DAO-company-action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: rgba(171, 159, 242, 0.1);
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-company-action-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-panel {
+  padding: 1rem 1.125rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-panel-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-briefing-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background:
+    linear-gradient(165deg, rgba(171, 159, 242, 0.07) 0%, rgba(171, 159, 242, 0.02) 28%, rgba(255, 255, 255, 0.02) 100%),
+    color-mix(in srgb, var(--void-surface, #0a0a0a) 96%, rgba(255, 255, 255, 0.03));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.DAO-company-briefing-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(171, 159, 242, 0.45) 35%,
+    rgba(171, 159, 242, 0.2) 65%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.DAO-company-briefing-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  padding: 1.125rem 1.25rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--void-border, #1a1a1a) 85%, rgba(171, 159, 242, 0.12));
+}
+
+.DAO-company-briefing-brand {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.DAO-company-briefing-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
+  border: 1px solid rgba(171, 159, 242, 0.22);
+  background: rgba(171, 159, 242, 0.12);
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-company-briefing-icon--pulse {
+  animation: DAO-briefing-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes DAO-briefing-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.DAO-company-briefing-eyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-company-briefing-title {
+  margin: 0.25rem 0 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-briefing-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.375rem 0.625rem;
+}
+
+.DAO-company-briefing-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-briefing-body {
+  max-height: min(32rem, 58vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 1.125rem 1.25rem 1.25rem;
+}
+
+.DAO-company-briefing-prose {
+  max-width: 68ch;
+}
+
+.DAO-company-briefing-foot {
+  padding: 0.625rem 1.25rem 0.875rem;
+  border-top: 1px solid var(--void-border, #1a1a1a);
+  font-size: 0.6875rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-briefing-foot time {
+  font-variant-numeric: tabular-nums;
+}
+
+.DAO-company-briefing-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: DAO-briefing-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes DAO-briefing-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* ── Reports ───────────────────────────────────────────────────────────── */
+
+.DAO-reports-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.DAO-reports-loading {
+  max-width: 42rem;
+}
+
+.DAO-reports-pulse {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.DAO-company-stat--link {
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.DAO-company-stat--link:hover {
+  border-color: rgba(251, 191, 36, 0.45);
+  transform: translateY(-1px);
+}
+
+.DAO-company-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.125rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-company-card-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-card-sub {
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.DAO-reports-briefing-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.DAO-reports-briefing-archive-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.DAO-reports-briefing-archive {
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.015);
+  overflow: hidden;
+}
+
+.DAO-reports-briefing-archive--open {
+  border-color: rgba(171, 159, 242, 0.18);
+}
+
+.DAO-reports-briefing-archive-toggle {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  height: auto !important;
+  padding: 0.75rem 0.875rem !important;
+  border-radius: 0 !important;
+  text-align: left;
+}
+
+.DAO-reports-briefing-archive-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.DAO-reports-briefing-archive-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-reports-briefing-archive-meta {
+  font-size: 0.6875rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-reports-briefing-archive-chevron {
+  flex-shrink: 0;
+  color: var(--text-muted, #525252);
+  transition: transform 0.15s ease;
+}
+
+.DAO-reports-briefing-archive-chevron--open {
+  transform: rotate(180deg);
+}
+
+.DAO-reports-briefing-archive-body {
+  padding: 0 0.5rem 0.5rem;
+}
+
+.DAO-reports-briefing-archive-body .DAO-company-briefing-card {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.DAO-reports-writeback-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.DAO-reports-writeback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.DAO-reports-writeback:hover {
+  border-color: rgba(171, 159, 242, 0.22);
+  background: rgba(171, 159, 242, 0.04);
+}
+
+.DAO-reports-writeback-link {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: flex-start;
+  gap: 0.625rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.DAO-reports-writeback-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 8px;
+  background: rgba(171, 159, 242, 0.1);
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-reports-writeback-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.DAO-reports-writeback-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-reports-writeback-path {
+  overflow: hidden;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  color: var(--text-muted, #525252);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.DAO-reports-writeback-meta {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.375rem;
+}
+
+.DAO-reports-writeback-time {
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-meta {
+  margin: 0.625rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-dept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.625rem;
+}
+
+.DAO-company-dept-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-height: 5.5rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-dept-name {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-company-dept-status {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-company-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.DAO-company-feed-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-company-feed-type {
+  flex-shrink: 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-feed-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.35;
+}
+
+.DAO-company-pill--live {
+  border-color: rgba(74, 222, 128, 0.22);
+  background: rgba(74, 222, 128, 0.08);
+  color: #86efac;
+}
+
+.DAO-company-pill--pending {
+  border-color: rgba(251, 191, 36, 0.22);
+  background: rgba(251, 191, 36, 0.08);
+  color: #fcd34d;
+}
+
+.DAO-company-pill--ready {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-color: var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted, #525252);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.DAO-company-pill--reused {
+  border-color: rgba(74, 222, 128, 0.28);
+  background: rgba(74, 222, 128, 0.1);
+  color: #86efac;
+}
+
+.DAO-company-pill--reused-pulse {
+  animation: DAO-reused-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes DAO-reused-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.12);
+  }
+}
+
+.DAO-company-pill--error {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(248, 113, 113, 0.1);
+  color: #fca5a5;
+}
+
+.DAO-company-floor {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.DAO-company-stat-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.625rem;
+  margin-bottom: 0.25rem;
+}
+
+.DAO-company-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-stat-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-lead-strip {
+  display: flex;
+  justify-content: center;
+}
+
+.DAO-company-lead-card {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  width: min(100%, 26rem);
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.DAO-company-lead-card--hero {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(171, 159, 242, 0.22);
+  background: linear-gradient(180deg, rgba(171, 159, 242, 0.08), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 0 40px rgba(171, 159, 242, 0.08);
+}
+
+.DAO-company-lead-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: rgba(171, 159, 242, 0.18);
+  color: var(--primary, #ab9ff2);
+  font-size: 0.875rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.DAO-company-lead-avatar--icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  box-shadow: 0 0 0 2px rgba(171, 159, 242, 0.2);
+}
+
+.DAO-company-lead-name {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-lead-role {
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-handoff-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.DAO-company-handoff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-company-handoff-chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 10px;
+  border: 1px dashed rgba(171, 159, 242, 0.28);
+  background: rgba(171, 159, 242, 0.04);
+}
+
+.DAO-company-handoff-rail {
+  position: absolute;
+  inset: 0.35rem 0.875rem auto;
+  height: 0.75rem;
+  pointer-events: none;
+}
+
+.DAO-company-handoff-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.DAO-company-handoff-line {
+  stroke: rgba(171, 159, 242, 0.55);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  animation: DAO-handoff-dash 1.2s linear infinite;
+}
+
+@keyframes DAO-handoff-dash {
+  to {
+    stroke-dashoffset: -8;
+  }
+}
+
+.DAO-company-handoff-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
+}
+
+.DAO-company-handoff-dept {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-company-handoff-arrow {
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-handoff-subject {
+  flex: 1 1 100%;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-company-floor-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.DAO-company-lane {
+  display: flex;
+  min-height: 9.5rem;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  border-left-width: 2px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.DAO-company-lane--active {
+  box-shadow: 0 0 0 1px rgba(171, 159, 242, 0.18);
+}
+
+.DAO-company-lane--reused {
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2);
+}
+
+.DAO-company-lane--idle {
+  opacity: 0.82;
+}
+
+.DAO-company-lane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.DAO-company-lane-status {
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-lane-status--active {
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-company-lane-status--reused {
+  color: #4ade80;
+}
+
+.DAO-company-lane-status--pending {
+  color: #fde047;
+}
+
+.DAO-company-lane-tasks {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-company-lane-empty {
+  margin: auto 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.DAO-company-task-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.DAO-company-task-card-text {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-company-hitl-card--button {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.DAO-company-hitl-card--button:hover {
+  border-color: rgba(171, 159, 242, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.DAO-company-hitl-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-company-hitl-sheet {
+  width: min(100vw, 28rem);
+  max-width: 28rem;
+  border-left-color: var(--void-border, #1a1a1a);
+  background: var(--void-surface, #0a0a0a);
+}
+
+.DAO-company-hitl-sheet-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+}
+
+.DAO-company-hitl-refs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.DAO-company-hitl-ref {
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.6875rem;
+  color: var(--text-secondary, #a3a3a3);
+  word-break: break-all;
+}
+
+.DAO-company-hitl-sheet-actions {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+}
+
+.DAO-company-hitl-trace-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-tool-trace {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.DAO-company-tool-trace-step {
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.DAO-company-tool-trace-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.DAO-company-tool-trace-name {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-tool-trace-preview {
+  margin: 0.375rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-company-tool-trace-block {
+  margin: 0.375rem 0 0;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.35);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-muted, #525252);
+  max-height: 8rem;
+  overflow-y: auto;
+}
+
+.DAO-chat-hints {
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-chat-hint + .DAO-chat-hint {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--void-border, #1a1a1a);
+}
+
+.DAO-chat-hint-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-chat-hint-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-chat-delegation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.DAO-chat-delegation-arrow {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--signal-green, #22c55e);
+}
+
+.DAO-chat-delegation-detail {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-chat-reused-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.DAO-chat-reused-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-chat-hint-foot {
+  margin: 0.5rem 0 0;
+  font-size: 0.6875rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-hitl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.DAO-company-hitl-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.125rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-hitl-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.DAO-company-hitl-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-hitl-meta {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-hitl-trace {
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.35);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-muted, #525252);
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.DAO-company-hitl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.DAO-company-drive-layout {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: 15.5rem minmax(0, 1fr);
+}
+
+.DAO-company-drive-sidebar {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--void-border, #1a1a1a);
+  background: color-mix(in srgb, var(--void-surface, #0a0a0a) 98%, rgba(255, 255, 255, 0.02));
+}
+
+.DAO-company-drive-sidebar-head {
+  flex-shrink: 0;
+  padding: 1rem var(--DAO-util-inset-x) 0.75rem;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+}
+
+.DAO-company-drive-sidebar-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-drive-path {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--text-secondary, #a3a3a3);
+  word-break: break-all;
+}
+
+.DAO-company-drive-folders {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.75rem var(--DAO-util-inset-x) 1.25rem;
+}
+
+.DAO-company-drive-main {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.DAO-company-drive-objects {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: clamp(1rem, 2vw, 1.25rem) var(--DAO-util-inset-x) 2rem;
+}
+
+.DAO-company-drive-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  margin-inline: -0.75rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  color: var(--text-primary, #fff);
+  transition: background 120ms ease;
+}
+
+.DAO-company-drive-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.DAO-company-drive-row-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.DAO-company-settings-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 900px) {
+  .DAO-company-settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.DAO-company-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 1.375rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-settings-eyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-company-settings-title {
+  margin: 0.25rem 0 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-settings-sub {
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-settings-copy {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-company-settings-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.DAO-company-settings-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  text-decoration: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+button.DAO-company-settings-link {
+  appearance: none;
+}
+
+.DAO-company-settings-link:hover {
+  border-color: rgba(171, 159, 242, 0.28);
+  background: rgba(171, 159, 242, 0.06);
+}
+
+.DAO-company-settings-link strong {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-settings-link span.DAO-company-settings-link-desc {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.DAO-company-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.DAO-company-settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-settings-field--row {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-primary, #fafafa);
+}
+
+.DAO-company-settings-input,
+.DAO-company-settings-textarea {
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text-primary, #fafafa);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.DAO-company-settings-error {
+  font-size: 0.8125rem;
+  color: #fca5a5;
+}
+
+.DAO-company-settings-success {
+  font-size: 0.8125rem;
+  color: #86efac;
+}
+
+.DAO-company-settings-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.DAO-company-settings-member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.DAO-company-alert--error {
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  background: rgba(248, 113, 113, 0.06);
+  color: #fca5a5;
+}
+
+.DAO-company-banner {
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.DAO-company-banner--info {
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-company-banner--ok {
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  background: rgba(74, 222, 128, 0.06);
+  color: #86efac;
+}
+
+.DAO-company-banner--warn {
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  background: rgba(251, 191, 36, 0.08);
+  color: #fcd34d;
+}
+
+.DAO-company-hidden-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 1024px) {
+  .DAO-company-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .DAO-company-stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .DAO-space-floor-preview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .DAO-company-floor-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .DAO-company-drive-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .DAO-company-drive-sidebar {
+    max-height: 12rem;
+    border-right: none;
+    border-bottom: 1px solid var(--void-border, #1a1a1a);
+  }
+
+  .DAO-company-drive-folders {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: 0.625rem;
+  }
+
+  .DAO-company-drive-folders .DAO-util-side-nav-item {
+    width: auto;
+    min-width: 9rem;
+    flex-shrink: 0;
+  }
+
+  .DAO-company-split-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .DAO-company-split-sidebar {
+    max-height: 12rem;
+    border-right: none;
+    border-bottom: 1px solid var(--void-border, #1a1a1a);
+  }
+
+  .DAO-company-split-list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: 0.625rem;
+  }
+
+  .DAO-company-split-list .DAO-util-side-nav-item {
+    width: auto;
+    min-width: 9rem;
+    flex-shrink: 0;
+  }
+
+  .DAO-company-org-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Shared list/detail layouts for Brain + company screens */
+.DAO-company-split-layout {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: 15.5rem minmax(0, 1fr);
+}
+
+.DAO-company-split-sidebar {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--void-border, #1a1a1a);
+  background: color-mix(in srgb, var(--void-surface, #0a0a0a) 98%, rgba(255, 255, 255, 0.02));
+}
+
+.DAO-company-split-sidebar-head {
+  flex-shrink: 0;
+  padding: 1rem var(--DAO-util-inset-x) 0.75rem;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+}
+
+.DAO-company-split-sidebar-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-split-sidebar-meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-company-split-list {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.75rem var(--DAO-util-inset-x) 1.25rem;
+}
+
+.DAO-company-split-main {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.DAO-company-split-detail {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: clamp(1rem, 2vw, 1.25rem) var(--DAO-util-inset-x) 2rem;
+}
+
+.DAO-company-detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.125rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.DAO-company-detail-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-detail-slug {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-detail-meta {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-detail-prose {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-secondary, #a3a3a3);
+  white-space: pre-wrap;
+}
+
+.DAO-company-org-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.75rem;
+}
+
+.DAO-company-org-dept {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  min-height: 7rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-org-dept-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.DAO-company-org-agent-card--clickable {
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  border-left: 2px solid transparent;
+  transition: background 0.15s ease;
+}
+
+.DAO-company-org-agent-card--clickable:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.DAO-company-org-editor-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: min(32rem, 100vw);
+  padding: 0;
+}
+
+.DAO-company-org-editor-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+}
+
+.DAO-company-org-editor-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  flex-shrink: 0;
+}
+
+.DAO-company-org-editor-avatar-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 999px;
+}
+
+.DAO-company-org-editor-header-copy {
+  min-width: 0;
+}
+
+.DAO-company-org-editor-kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted, #737373);
+}
+
+.DAO-company-org-editor-title {
+  margin: 0.125rem 0 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.DAO-company-org-editor-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-company-org-editor-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+  padding: 1rem 1.5rem 1.25rem;
+}
+
+.DAO-company-org-editor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.DAO-company-org-editor-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.DAO-company-org-editor-section-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-org-editor-section-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted, #737373);
+}
+
+.DAO-company-org-editor-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-org-editor-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.DAO-company-org-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.DAO-company-org-choice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.DAO-company-org-choice-card:hover {
+  border-color: var(--void-border-strong, #2a2a2a);
+}
+
+.DAO-company-org-choice-card--active {
+  border-color: rgba(171, 159, 242, 0.45);
+  background: rgba(171, 159, 242, 0.08);
+}
+
+.DAO-company-org-choice-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  text-transform: capitalize;
+}
+
+.DAO-company-org-choice-hint {
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--text-muted, #737373);
+}
+
+.DAO-company-org-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  max-height: 11rem;
+  overflow-y: auto;
+}
+
+.DAO-company-org-manager-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.DAO-company-org-manager-item:hover {
+  border-color: var(--void-border-strong, #2a2a2a);
+}
+
+.DAO-company-org-manager-item--active {
+  border-color: rgba(171, 159, 242, 0.45);
+  background: rgba(171, 159, 242, 0.08);
+}
+
+.DAO-company-org-tier-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-company-org-tier-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.DAO-company-org-tier-card:hover {
+  border-color: var(--void-border-strong, #2a2a2a);
+}
+
+.DAO-company-org-tier-card--active {
+  border-color: rgba(171, 159, 242, 0.45);
+  background: rgba(171, 159, 242, 0.08);
+}
+
+.DAO-company-org-tier-card-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-org-tier-card-hint {
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--text-muted, #737373);
+}
+
+.DAO-company-org-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.DAO-company-org-field-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #737373);
+}
+
+.DAO-company-org-field-hint {
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--text-muted, #737373);
+}
+
+.DAO-company-org-input,
+.DAO-company-org-textarea {
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary, #fff);
+  font-size: 0.8125rem;
+}
+
+.DAO-company-org-input:focus,
+.DAO-company-org-textarea:focus {
+  outline: none;
+  border-color: rgba(171, 159, 242, 0.55);
+  box-shadow: 0 0 0 2px rgba(171, 159, 242, 0.15);
+}
+
+.DAO-company-org-textarea {
+  resize: vertical;
+  min-height: 6.5rem;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.DAO-company-org-tier-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.DAO-company-org-editor-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(17, 17, 17, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+.DAO-company-org-help-list {
+  margin: 0;
+  padding-left: 1.125rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-company-org-help-list strong {
+  color: var(--text-primary, #fff);
+  font-weight: 600;
+}
+
+.DAO-company-org-agent-list,
+.DAO-company-org-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.DAO-company-org-agent-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.DAO-company-org-agent-card--root {
+  border-color: rgba(171, 159, 242, 0.22);
+  background: rgba(171, 159, 242, 0.06);
+}
+
+.DAO-company-org-agent-name {
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-org-tree-root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-company-org-tree-children {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0 0 1rem;
+  padding: 0 0 0 0.75rem;
+  border-left: 1px dashed rgba(171, 159, 242, 0.25);
+  list-style: none;
+}
+
+.DAO-company-org-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.DAO-company-org-setup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.DAO-company-org-template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.75rem;
+}
+
+.DAO-company-org-template-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-company-org-template-card--active {
+  border-color: rgba(171, 159, 242, 0.35);
+  box-shadow: 0 0 0 1px rgba(171, 159, 242, 0.12);
+}
+
+.DAO-company-org-template-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.DAO-company-org-template-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.DAO-company-automation-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.DAO-company-automation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.DAO-company-automation-card {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.DAO-company-automation-card:hover,
+.DAO-company-automation-card--active {
+  border-color: rgba(171, 159, 242, 0.28);
+  background: rgba(171, 159, 242, 0.06);
+}
+
+.DAO-company-automation-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-company-automation-meta {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.DAO-company-automation-meta div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.DAO-company-automation-meta dt {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-automation-meta dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+@media (max-width: 768px) {
+  .DAO-util-page {
+    --DAO-util-inset-x: 0.875rem;
+  }
+
+  .DAO-company-page {
+    --DAO-util-toolbar-top: 0.875rem;
+  }
+
+  .DAO-util-page-headline {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding-bottom: 0.625rem;
+  }
+
+  .DAO-util-page-headline-trailing {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .DAO-util-page-title {
+    font-size: 1.0625rem;
+  }
+
+  .DAO-space-home-headline {
+    font-size: clamp(1.35rem, 6vw, 1.75rem);
+  }
+
+  .DAO-space-home-hero {
+    padding-inline: 0.125rem;
+  }
+
+  .DAO-company-settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .DAO-company-settings-panel {
+    padding: 1rem 1.125rem;
+  }
+
+  .DAO-company-settings-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .DAO-company-settings-actions .DAO-company-settings-link,
+  .DAO-company-settings-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .DAO-company-scroll-inner {
+    gap: 1.25rem;
+    padding-bottom: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .DAO-util-page {
+    --DAO-util-inset-x: 0.75rem;
+  }
+
+  .DAO-util-chip-switch {
+    width: 100%;
+  }
+
+  .DAO-company-stat-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Jarvis voice console (futuristic DAO home) ─────────────────────────── */
+
+@keyframes DAO-presence-wave {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes DAO-orb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+@keyframes DAO-orb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes DAO-ring-expand {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.55;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.DAO-jarvis-console {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.DAO-jarvis-orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 13.5rem;
+  height: 13.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  /* canvas reads this via getComputedStyle(canvas).color */
+  color: var(--primary, #ab9ff2);
+  cursor: pointer;
+  isolation: isolate;
+  transition: transform 0.2s ease;
+}
+
+.DAO-jarvis-orb:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.DAO-jarvis-orb:focus-visible {
+  outline: none;
+}
+
+.DAO-jarvis-orb:focus-visible .DAO-jarvis-orb__canvas {
+  box-shadow:
+    0 0 0 2px var(--void, #050506),
+    0 0 0 4px var(--primary, #ab9ff2);
+  border-radius: 9999px;
+}
+
+.DAO-jarvis-orb__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.DAO-jarvis-orb__initial {
+  position: absolute;
+  z-index: 2;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--void, #050506);
+  pointer-events: none;
+  text-shadow: 0 1px 6px color-mix(in srgb, var(--primary, #ab9ff2) 60%, transparent);
+}
+
+.DAO-jarvis-caption {
+  min-height: 1.25rem;
+  max-width: 32rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-jarvis-caption[data-variant='transcript'] {
+  color: var(--text-primary, #fff);
+  font-style: italic;
+}
+
+/* Spoken line — revealed one sentence at a time, in sync with TTS. */
+.DAO-jarvis-caption[data-variant='caption'] {
+  color: var(--text-primary, #fff);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  font-weight: 450;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .DAO-jarvis-caption[data-variant='caption'] {
+    animation: DAO-jarvis-caption-in 0.28s ease both;
+  }
+}
+
+@keyframes DAO-jarvis-caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.DAO-jarvis-error {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--signal-red, #f87171);
+}
+
+.DAO-jarvis-wakehint {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--text-muted, #737373);
+  opacity: 0.85;
+}
+
+.DAO-jarvis-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.DAO-jarvis-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.DAO-jarvis-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: color-mix(in srgb, var(--void-surface, #0e0e10) 70%, transparent);
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease;
+  cursor: pointer;
+}
+
+.DAO-jarvis-pill:hover {
+  border-color: color-mix(in srgb, var(--primary, #ab9ff2) 45%, var(--void-border, #1a1a1a));
+  transform: translateY(-1px);
+}
+
+.DAO-jarvis-pill__value {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-jarvis-pill__label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-jarvis-pill--alert {
+  border-color: color-mix(in srgb, var(--signal-yellow, #facc15) 45%, var(--void-border, #1a1a1a));
+  background: color-mix(in srgb, var(--signal-yellow, #facc15) 8%, transparent);
+}
+
+.DAO-jarvis-pill--alert .DAO-jarvis-pill__value {
+  color: var(--signal-yellow, #facc15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .DAO-jarvis-orb:hover,
+  .DAO-jarvis-pill:hover {
+    transform: none;
+  }
+}
+
+/* ── Brain hub — overview redesign ──────────────────────────────────────── */
+
+@keyframes DAO-brain-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.DAO-brain {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.DAO-brain [data-accent='purple'] {
+  --brain-accent: #ab9ff2;
+}
+.DAO-brain [data-accent='blue'] {
+  --brain-accent: #7cc4fb;
+}
+.DAO-brain [data-accent='amber'] {
+  --brain-accent: #fbbf24;
+}
+.DAO-brain [data-accent='green'] {
+  --brain-accent: #4ade80;
+}
+
+/* Hero banner */
+.DAO-brain-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.125rem;
+  overflow: hidden;
+  padding: 1.375rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--primary, #ab9ff2) 22%, var(--void-border, #1a1a1a));
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--primary, #ab9ff2) 14%, transparent), transparent 55%),
+    rgba(255, 255, 255, 0.02);
+  animation: DAO-brain-rise 0.3s ease both;
+}
+
+.DAO-brain-hero-glow {
+  position: absolute;
+  inset: -40% 60% -40% auto;
+  width: 18rem;
+  pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--primary, #ab9ff2) 28%, transparent), transparent 70%);
+  opacity: 0.5;
+}
+
+.DAO-brain-hero-glyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex-shrink: 0;
+  border-radius: 14px;
+  color: var(--primary, #ab9ff2);
+  border: 1px solid color-mix(in srgb, var(--primary, #ab9ff2) 35%, transparent);
+  background: color-mix(in srgb, var(--primary, #ab9ff2) 12%, transparent);
+  box-shadow: 0 0 28px -10px color-mix(in srgb, var(--primary, #ab9ff2) 60%, transparent);
+}
+
+.DAO-brain-hero-copy {
+  position: relative;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.DAO-brain-hero-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-brain-hero-sub {
+  margin: 0.25rem 0 0;
+  max-width: 54ch;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-brain-hero-stat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.DAO-brain-hero-stat-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-brain-hero-stat-label {
+  margin-top: 0.125rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-brain-hero-fresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+  color: color-mix(in srgb, var(--primary, #ab9ff2) 80%, #fff);
+}
+
+/* Metric tiles */
+.DAO-brain-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.DAO-brain-metric {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  text-align: left;
+  border-radius: 12px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.DAO-brain-metric:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--brain-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--brain-accent) 7%, transparent);
+  box-shadow: 0 12px 28px -18px color-mix(in srgb, var(--brain-accent) 80%, transparent);
+}
+
+.DAO-brain-metric:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--brain-accent) 60%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brain-accent) 55%, transparent);
+}
+
+.DAO-brain-metric-icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: var(--brain-accent);
+  border: 1px solid color-mix(in srgb, var(--brain-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--brain-accent) 12%, transparent);
+}
+
+.DAO-brain-metric-body {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.0625rem;
+}
+
+.DAO-brain-metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-brain-metric-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-brain-metric-hint {
+  position: absolute;
+  left: 1rem;
+  bottom: -1.25rem;
+  font-size: 0.6875rem;
+  color: var(--text-secondary, #a3a3a3);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+  pointer-events: none;
+}
+
+.DAO-brain-metric-arrow {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  color: var(--brain-accent);
+  opacity: 0;
+  transform: translate(-3px, 3px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+
+.DAO-brain-metric:hover .DAO-brain-metric-arrow,
+.DAO-brain-metric:focus-visible .DAO-brain-metric-arrow {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+/* Section cards */
+.DAO-brain-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.875rem;
+}
+
+.DAO-brain-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.125rem 1.25rem;
+  text-align: left;
+  border-radius: 14px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.DAO-brain-section:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--brain-accent) 40%, transparent);
+  box-shadow: 0 16px 36px -24px color-mix(in srgb, var(--brain-accent) 90%, transparent);
+}
+
+.DAO-brain-section:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--brain-accent) 60%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brain-accent) 50%, transparent);
+}
+
+.DAO-brain-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.DAO-brain-section-icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: var(--brain-accent);
+  border: 1px solid color-mix(in srgb, var(--brain-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--brain-accent) 12%, transparent);
+}
+
+.DAO-brain-section-titles {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+
+.DAO-brain-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-brain-section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.375rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--brain-accent);
+  background: color-mix(in srgb, var(--brain-accent) 16%, transparent);
+}
+
+.DAO-brain-section-blurb {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-brain-section-arrow {
+  flex-shrink: 0;
+  color: var(--text-muted, #525252);
+  transition:
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.DAO-brain-section:hover .DAO-brain-section-arrow,
+.DAO-brain-section:focus-visible .DAO-brain-section-arrow {
+  color: var(--brain-accent);
+  transform: translate(2px, -2px);
+}
+
+/* Preview list inside a section card */
+.DAO-brain-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  border-top: 1px solid var(--void-border, #1a1a1a);
+  padding-top: 0.625rem;
+}
+
+.DAO-brain-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.3125rem 0;
+}
+
+.DAO-brain-preview-text {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-brain-preview-meta {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-brain-preview-empty {
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted, #525252);
+}
+
+/* Confidence bar (overview + truths sidebar) */
+.DAO-brain-confidence {
+  position: relative;
+  display: block;
+  width: 3.5rem;
+  height: 0.25rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted, #525252) 30%, transparent);
+}
+
+.DAO-brain-preview-row .DAO-brain-confidence {
+  width: 3rem;
+}
+
+.DAO-brain-confidence-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--primary, #ab9ff2);
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.DAO-brain-confidence[data-tone='high'] .DAO-brain-confidence-fill {
+  background: #4ade80;
+}
+.DAO-brain-confidence[data-tone='mid'] .DAO-brain-confidence-fill {
+  background: #fbbf24;
+}
+.DAO-brain-confidence[data-tone='low'] .DAO-brain-confidence-fill {
+  background: color-mix(in srgb, var(--text-secondary, #a3a3a3) 70%, transparent);
+}
+
+/* Copy button (truth detail) */
+.DAO-brain-copy-btn {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 8px;
+  color: var(--text-muted, #525252);
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 0.14s ease,
+    border-color 0.14s ease,
+    background 0.14s ease;
+}
+
+.DAO-brain-copy-btn:hover {
+  color: var(--text-primary, #fff);
+  border-color: color-mix(in srgb, var(--primary, #ab9ff2) 45%, transparent);
+  background: color-mix(in srgb, var(--primary, #ab9ff2) 8%, transparent);
+}
+
+/* Drive reference chips */
+.DAO-brain-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.DAO-brain-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--text-secondary, #a3a3a3);
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .DAO-brain-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .DAO-brain-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .DAO-brain-hero {
+    flex-wrap: wrap;
+  }
+  .DAO-brain-hero-stat {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .DAO-brain-hero {
+    animation: none;
+  }
+  .DAO-brain-metric:hover,
+  .DAO-brain-section:hover {
+    transform: none;
+  }
+  .DAO-brain-confidence-fill {
+    transition: none;
+  }
+}

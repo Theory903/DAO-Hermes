@@ -25,6 +25,8 @@
 
 import { useEffect, useState } from "react";
 import { api, type AuthMeResponse } from "@/lib/api";
+import { DAOFetchMe, DAOLogout } from "@/lib/DAO-api";
+import { isDAOEmbed } from "@/lib/DAO-embed";
 import { cn } from "@/lib/utils";
 import { LogOut } from "lucide-react";
 
@@ -42,11 +44,27 @@ function truncateUserId(id: string): string {
 
 export function AuthWidget({ className }: AuthWidgetProps) {
   const [me, setMe] = useState<AuthMeResponse | null>(null);
+  const [DAOEmail, setDAOEmail] = useState<string | null>(null);
   const [hidden, setHidden] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const DAOMode = isDAOEmbed();
 
   useEffect(() => {
     let cancelled = false;
+    if (DAOMode) {
+      DAOFetchMe()
+        .then((user) => {
+          if (cancelled) return;
+          setDAOEmail(user.email);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setHidden(true);
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
     api
       .getAuthMe()
       .then((data) => {
@@ -70,9 +88,34 @@ export function AuthWidget({ className }: AuthWidgetProps) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [DAOMode]);
 
   if (hidden) return null;
+
+  if (DAOMode && DAOEmail) {
+    return (
+      <div
+        className={cn(
+          "flex shrink-0 items-center justify-between gap-2",
+          "px-5 py-2",
+          "border-t border-current/10",
+          className,
+        )}
+      >
+        <span className="truncate text-[0.65rem] tracking-[0.05em] text-muted-foreground">
+          {DAOEmail}
+        </span>
+        <button
+          type="button"
+          onClick={() => DAOLogout()}
+          className="text-muted-foreground hover:text-foreground"
+          aria-label="Log out"
+        >
+          <LogOut className="size-3.5" />
+        </button>
+      </div>
+    );
+  }
 
   if (error) {
     return (

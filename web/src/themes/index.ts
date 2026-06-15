@@ -1,5 +1,5 @@
-export { ThemeProvider, useTheme } from "./context";
-export { BUILTIN_THEMES, defaultTheme } from "./presets";
+export { ThemeProvider, useTheme, seedBuiltinTheme, applyTheme } from "./context";
+export { BUILTIN_THEMES, defaultTheme, voidTheme } from "./presets";
 export {
   FONT_CHOICES,
   THEME_DEFAULT_FONT_ID,

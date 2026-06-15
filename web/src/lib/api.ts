@@ -32,6 +32,24 @@ declare global {
     __HERMES_AUTH_REQUIRED__?: boolean;
   }
 }
+
+import { DAOHermes } from "@/lib/DAO-embed";
+import { DAOLogout } from "@/lib/DAO-api";
+
+function rewriteApiPath(url: string): string {
+  const cx = DAOHermes();
+  if (!cx || !url.startsWith("/api/")) return url;
+  return `${cx.apiPrefix}${url.slice(4)}`;
+}
+
+function applyDAOAuth(headers: Headers): void {
+  const cx = DAOHermes();
+  if (!cx) return;
+  const token = cx.getToken();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+}
 let _sessionToken: string | null = null;
 const SESSION_HEADER = "X-Hermes-Session-Token";
 
@@ -91,11 +109,12 @@ export async function fetchJSON<T>(
   init?: RequestInit,
   options?: FetchJSONOptions,
 ): Promise<T> {
-  url = withManagementProfile(url);
+  url = rewriteApiPath(withManagementProfile(url));
   // Inject the session token into all /api/ requests.
   const headers = new Headers(init?.headers);
+  applyDAOAuth(headers);
   const token = window.__HERMES_SESSION_TOKEN__;
-  if (token) {
+  if (token && !DAOHermes()) {
     setSessionHeader(headers, token);
   }
   const res = await fetch(`${BASE}${url}`, {
@@ -108,6 +127,22 @@ export async function fetchJSON<T>(
     credentials: init?.credentials ?? "include",
   });
   if (res.status === 401) {
+    if (DAOHermes() && !options?.allowUnauthorized) {
+      // Only end the DAO session on JWT failures from the DAO API
+      // envelope — not Hermes loopback 401s (`{ detail: "Unauthorized" }`)
+      // from proxied /hermes-api/* routes before the proxy injects session auth.
+      let body: { error?: { code?: string }; detail?: string } = {};
+      try {
+        body = await res.clone().json();
+      } catch {
+        /* non-JSON */
+      }
+      const code = body.error?.code;
+      if (code === "UNAUTHORIZED" || code === "INVALID_TOKEN") {
+        DAOLogout();
+        return new Promise<T>(() => {});
+      }
+    }
     // Phase 6: the gated middleware emits a structured envelope so the
     // SPA can full-page-navigate to /login on session expiry. Parse it,
     // and only redirect on the known error codes — domain-level 401s
@@ -214,6 +249,22 @@ async function getSessionToken(): Promise<string> {
  * fetch a fresh ticket.
  */
 export async function getWsTicket(): Promise<{ ticket: string; ttl_seconds: number }> {
+  const cx = DAOHermes();
+  if (cx) {
+    const authToken = cx.getToken();
+    const res = await fetch(cx.wsTicketUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+    });
+    if (!res.ok) {
+      throw new Error(`ws ticket: HTTP ${res.status}`);
+    }
+    const data = (await res.json()) as { ticket: string; ttl_seconds?: number };
+    return { ticket: data.ticket, ttl_seconds: data.ttl_seconds ?? 30 };
+  }
   const res = await fetch(`${BASE}/api/auth/ws-ticket`, {
     method: "POST",
     credentials: "include",
@@ -230,7 +281,7 @@ export async function getWsTicket(): Promise<{ ticket: string; ttl_seconds: numb
  * mode returns the injected session token.
  */
 export async function buildWsAuthParam(): Promise<[string, string]> {
-  if (window.__HERMES_AUTH_REQUIRED__) {
+  if (DAOHermes() || window.__HERMES_AUTH_REQUIRED__) {
     const { ticket } = await getWsTicket();
     return ["ticket", ticket];
   }
@@ -259,9 +310,11 @@ export async function authedFetch(
   url: string,
   init?: RequestInit,
 ): Promise<Response> {
+  url = rewriteApiPath(url);
   const headers = new Headers(init?.headers);
+  applyDAOAuth(headers);
   const token = window.__HERMES_SESSION_TOKEN__;
-  if (token) {
+  if (token && !DAOHermes()) {
     setSessionHeader(headers, token);
   }
   return fetch(`${BASE}${url}`, {
@@ -289,10 +342,48 @@ export async function buildWsUrl(
   params?: Record<string, string>,
 ): Promise<string> {
   const [authName, authValue] = await buildWsAuthParam();
-  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
   const qs = new URLSearchParams(params ?? {});
   qs.set(authName, authValue);
+  const cx = DAOHermes();
+  if (cx?.wsBase) {
+    const base = cx.wsBase.replace(/\/+$/, "");
+    return `${base}${path}?${qs}`;
+  }
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
   return `${proto}//${window.location.host}${BASE}${path}?${qs}`;
+}
+
+/** PTY terminal WebSocket (ChatPage). */
+export async function buildPtyWsUrl(
+  resume: string | null,
+  channel: string,
+  profile: string,
+): Promise<string> {
+  const [authName, authValue] = await buildWsAuthParam();
+  const qs = new URLSearchParams({ [authName]: authValue, channel });
+  if (resume) qs.set("resume", resume);
+  if (profile) qs.set("profile", profile);
+  const cx = DAOHermes();
+  if (cx?.wsBase) {
+    const base = cx.wsBase.replace(/\/+$/, "");
+    return `${base}/api/pty?${qs}`;
+  }
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${window.location.host}${HERMES_BASE_PATH}/api/pty?${qs.toString()}`;
+}
+
+/** Dashboard plugin static asset URL. */
+export function hermesPluginAssetUrl(pluginName: string, file: string): string {
+  const cx = DAOHermes();
+  if (cx) {
+    return `${cx.pluginsPrefix}/hermes-plugins/${pluginName}/${file}`;
+  }
+  return `${HERMES_BASE_PATH}/dashboard-plugins/${pluginName}/${file}`;
+}
+
+/** Dashboard plugin static assets base (legacy). */
+export function hermesPluginsBase(): string {
+  return DAOHermes()?.pluginsPrefix ?? HERMES_BASE_PATH;
 }
 
 /** Build a ``?profile=<name>`` query suffix, or "" when unset.

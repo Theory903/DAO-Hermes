@@ -1,0 +1,18 @@
+# DAO API sidecar (Hermes web_server + DAO mount)
+FROM python:3.11-slim-bookworm
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml uv.lock ./
+RUN pip install --no-cache-dir uv \
+  && uv sync --frozen --extra DAO --no-dev
+
+COPY . .
+
+ENV DAO_API_ENABLED=1
+EXPOSE 9119
+
+CMD ["uv", "run", "python", "-m", "hermes_cli.web_server", "--host", "0.0.0.0", "--port", "9119"]

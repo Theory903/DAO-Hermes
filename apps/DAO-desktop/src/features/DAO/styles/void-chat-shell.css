@@ -1,0 +1,338 @@
+/* VOID structural overrides for Hermes chat chrome (not just color tokens). */
+
+.void-chat-root {
+  background: var(--void, #000);
+}
+
+.void-chat-body {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* AppShell is h-screen (100vh) but lives below the DAO topbar — cap it. */
+html.DAO-void .void-chat-body > .group\/sidebar-wrapper,
+[data-hermes-theme='void'] .void-chat-body > .group\/sidebar-wrapper {
+  flex: 1 1 0;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0 !important;
+  min-width: 0;
+}
+
+html.DAO-void .void-chat-body .grid.h-full,
+[data-hermes-theme='void'] .void-chat-body .grid.h-full {
+  flex: 1 1 0;
+  height: 100%;
+  min-height: 0;
+}
+
+html.DAO-void .void-chat-body > .group\/sidebar-wrapper > main,
+[data-hermes-theme='void'] .void-chat-body > .group\/sidebar-wrapper > main {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+}
+
+html.DAO-void .void-chat-body [data-pane-main='true'],
+[data-hermes-theme='void'] .void-chat-body [data-pane-main='true'] {
+  flex: 1 1 0;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.void-chat-topbar {
+  flex-shrink: 0;
+  z-index: 40;
+  flex-wrap: nowrap;
+}
+
+/* Lock VOID topbar height so Hermes titlebar controls + hover-reveal align. */
+html.DAO-void .void-chat-topbar.DAO-topbar,
+[data-hermes-theme='void'] .void-chat-topbar.DAO-topbar {
+  box-sizing: border-box;
+  height: var(--void-topbar-height, 3.25rem);
+  min-height: var(--void-topbar-height, 3.25rem);
+  max-height: var(--void-topbar-height, 3.25rem);
+  padding-block: 0;
+  padding-inline: 0 var(--DAO-titlebar-inset-right);
+  align-items: center;
+}
+
+html.DAO-void .void-chat-body .void-titlebar-cluster-left,
+[data-hermes-theme='void'] .void-chat-body .void-titlebar-cluster-left,
+html.DAO-void .void-chat-body .void-titlebar-cluster-sidebar,
+[data-hermes-theme='void'] .void-chat-body .void-titlebar-cluster-sidebar,
+html.DAO-void .void-chat-body .titlebar-cluster-pane,
+[data-hermes-theme='void'] .void-chat-body .titlebar-cluster-pane,
+html.DAO-void .void-chat-body .titlebar-cluster-right,
+[data-hermes-theme='void'] .void-chat-body .titlebar-cluster-right {
+  height: var(--titlebar-control-size, 1.75rem);
+  align-items: center;
+  top: calc(
+    var(--void-topbar-height, 0px) +
+      (var(--hermes-titlebar-band-height, 34px) - var(--titlebar-control-height, 1.75rem)) / 2
+  ) !important;
+}
+
+html.DAO-void .void-chat-body .titlebar-cluster-sidebar--docked [data-slot='button'],
+[data-hermes-theme='void'] .void-chat-body .titlebar-cluster-sidebar--docked [data-slot='button'] {
+  box-shadow: inset 1px 0 0 var(--void-border, #1a1a1a);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.void-chat-topbar .DAO-nav--chat {
+  justify-content: center;
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .void-chat-topbar .DAO-nav--chat {
+    gap: 0.35rem;
+    justify-content: flex-start;
+  }
+
+  .void-chat-topbar .DAO-topbar-brand {
+    max-width: min(11rem, 38vw);
+  }
+
+  .void-chat-topbar .DAO-topbar-brand-meta {
+    display: none;
+  }
+
+  .void-chat-topbar .DAO-space-switcher--brand {
+    gap: 0.25rem;
+    padding-inline: 0;
+  }
+}
+
+/* Hermes titlebar band — blend with VOID glass instead of a second heavy chrome row. */
+html.DAO-void .void-chat-body > .group\/sidebar-wrapper,
+[data-hermes-theme='void'] .void-chat-body > .group\/sidebar-wrapper {
+  --ui-chat-surface-background: rgba(10, 10, 10, 0.55);
+  --titlebar-control-size: 1.75rem;
+  --titlebar-control-height: 1.75rem;
+}
+
+/* 28px touch targets — icons stay centered in titlebar clusters. */
+html.DAO-void .void-chat-body .titlebar-cluster-left [data-slot='button'],
+html.DAO-void .void-chat-body .titlebar-cluster-sidebar [data-slot='button'],
+html.DAO-void .void-chat-body .titlebar-cluster-pane [data-slot='button'],
+html.DAO-void .void-chat-body .titlebar-cluster-right [data-slot='button'],
+[data-hermes-theme='void'] .void-chat-body .titlebar-cluster-left [data-slot='button'],
+[data-hermes-theme='void'] .void-chat-body .titlebar-cluster-sidebar [data-slot='button'],
+[data-hermes-theme='void'] .void-chat-body .titlebar-cluster-pane [data-slot='button'],
+[data-hermes-theme='void'] .void-chat-body .titlebar-cluster-right [data-slot='button'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Group haptics + keyboard shortcuts as one pill; separate settings & knowledge. */
+html.DAO-void .void-chat-body .titlebar-cluster-group,
+[data-hermes-theme='void'] .void-chat-body .titlebar-cluster-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.0625rem;
+  padding: 0.125rem;
+  border-radius: var(--radius-void-pill, 9999px);
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+html.DAO-void .void-chat-body .titlebar-cluster-sep,
+[data-hermes-theme='void'] .void-chat-body .titlebar-cluster-sep {
+  width: 1px;
+  height: 1.125rem;
+  margin-inline: 0.25rem;
+  flex-shrink: 0;
+  background: var(--void-border-strong, #2a2a2a);
+  opacity: 0.55;
+}
+
+html.DAO-void .void-chat-body .titlebar-cluster-right,
+[data-hermes-theme='void'] .void-chat-body .titlebar-cluster-right {
+  gap: 0.125rem;
+}
+
+html.DAO-void [data-slot='sidebar-inner'],
+[data-hermes-theme='void'] [data-slot='sidebar-inner'] {
+  background: rgba(10, 10, 10, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-inline-end: 1px solid var(--void-border, #1a1a1a);
+}
+
+/* Pane track sets --pane-chat-sidebar-width to 0 when collapsed; fill the Pane cell. */
+html.DAO-void .void-chat-body [data-pane-id='chat-sidebar'],
+[data-hermes-theme='void'] .void-chat-body [data-pane-id='chat-sidebar'] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+html.DAO-void .void-chat-body [data-slot='sidebar'],
+[data-hermes-theme='void'] .void-chat-body [data-slot='sidebar'] {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+/* Session list scroller — flex-1 needs min-h-0 through the VOID overflow chain. */
+html.DAO-void .void-chat-body [data-slot='sidebar-content'],
+[data-hermes-theme='void'] .void-chat-body [data-slot='sidebar-content'] {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+html.DAO-void [data-slot='sidebar-header'],
+[data-hermes-theme='void'] [data-slot='sidebar-header'] {
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+}
+
+/* VOID chat: sidebar sits below company topbar — light top inset only. */
+html.DAO-void .void-chat-body .DAO-sidebar-header-group,
+[data-hermes-theme='void'] .void-chat-body .DAO-sidebar-header-group {
+  padding-top: 0.625rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+html.DAO-void .void-chat-body .DAO-chat-sidebar-content,
+[data-hermes-theme='void'] .void-chat-body .DAO-chat-sidebar-content {
+  gap: 0.125rem;
+}
+
+html.DAO-void .void-chat-body .DAO-sidebar-search,
+[data-hermes-theme='void'] .void-chat-body .DAO-sidebar-search {
+  margin-block: 0.125rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+}
+
+html.DAO-void .void-chat-body .DAO-sidebar-footer,
+[data-hermes-theme='void'] .void-chat-body .DAO-sidebar-footer {
+  margin-top: 0.25rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--void-border, #1a1a1a);
+}
+
+html.DAO-void .void-chat-body .DAO-space-switcher--sidebar,
+[data-hermes-theme='void'] .void-chat-body .DAO-space-switcher--sidebar {
+  border-color: var(--void-border, #1a1a1a);
+  background: rgba(17, 17, 17, 0.72);
+}
+
+html.DAO-void .void-chat-body .DAO-sidebar-divider,
+[data-hermes-theme='void'] .void-chat-body .DAO-sidebar-divider {
+  margin-inline: 0.125rem;
+}
+
+html.DAO-void [data-slot='sidebar-menu-button'][data-active='true'],
+[data-hermes-theme='void'] [data-slot='sidebar-menu-button'][data-active='true'] {
+  background: rgba(171, 159, 242, 0.12);
+  color: var(--primary, #ab9ff2);
+  border-radius: 9999px;
+}
+
+html.DAO-void [data-slot='sidebar-menu-button'],
+[data-hermes-theme='void'] [data-slot='sidebar-menu-button'] {
+  border-radius: 9999px;
+}
+
+html.DAO-void .group\/composer,
+[data-hermes-theme='void'] .group\/composer {
+  border-radius: 9999px;
+}
+
+html.DAO-void .composer-fallback-surface,
+[data-hermes-theme='void'] .composer-fallback-surface {
+  border-radius: 9999px;
+}
+
+html.DAO-void .void-chat-body,
+[data-hermes-theme='void'] .void-chat-body {
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+html.DAO-void .void-chat-body [data-slot='sidebar-wrapper'],
+[data-hermes-theme='void'] .void-chat-body [data-slot='sidebar-wrapper'] {
+  border-inline-end: 1px solid var(--void-border, #1a1a1a);
+}
+
+/* Composer dock — safe-area, touch targets, readable width */
+html.DAO-void .void-chat-body,
+[data-hermes-theme='void'] .void-chat-body {
+  --composer-shell-pad-block-end: max(0.625rem, env(safe-area-inset-bottom, 0px));
+}
+
+html.DAO-void .void-chat-body [data-slot='composer-root'],
+[data-hermes-theme='void'] .void-chat-body [data-slot='composer-root'] {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+html.DAO-void .void-chat-body [data-slot='composer-surface'],
+[data-hermes-theme='void'] .void-chat-body [data-slot='composer-surface'] {
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  html.DAO-void .void-chat-topbar.DAO-topbar,
+  [data-hermes-theme='void'] .void-chat-topbar.DAO-topbar {
+    min-height: auto;
+    height: auto;
+    max-height: none;
+    padding-block: 0.5rem;
+  }
+
+  html.DAO-void .void-chat-body,
+  [data-hermes-theme='void'] .void-chat-body {
+    --composer-control-size: 2rem;
+    --composer-control-primary-size: 2.125rem;
+    --composer-surface-pad-x: 0.625rem;
+    --composer-input-inline-min-width: 0;
+    --chat-min-width: min(28rem, 100%);
+  }
+
+  html.DAO-void .void-chat-body [data-slot='composer-root'],
+  [data-hermes-theme='void'] .void-chat-body [data-slot='composer-root'] {
+    width: min(var(--composer-width), calc(100% - 1rem));
+  }
+
+  html.DAO-void .void-chat-body [data-slot='aui_thread-content'],
+  [data-hermes-theme='void'] .void-chat-body [data-slot='aui_thread-content'] {
+    padding-inline: clamp(0.75rem, 3vw, 1.25rem);
+  }
+
+  html.DAO-void .void-chat-topbar,
+  [data-hermes-theme='void'] .void-chat-topbar {
+    gap: var(--space-3);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  html.DAO-void .void-chat-body [data-slot='composer-root'],
+  [data-hermes-theme='void'] .void-chat-body [data-slot='composer-root'] {
+    width: min(var(--composer-width), calc(100% - 1.5rem));
+  }
+}
+
+@media (min-width: 1280px) {
+  html.DAO-void .void-chat-body [data-slot='composer-root'],
+  [data-hermes-theme='void'] .void-chat-body [data-slot='composer-root'] {
+    width: min(var(--composer-width), calc(100% - 3rem));
+  }
+}

@@ -277,6 +277,23 @@ TOOLSETS = {
         "includes": [],
     },
 
+    "DAO": {
+        "description": (
+            "DAO company OS — navigate company screens, list Jarvis briefings "
+            "and Drive writebacks, read HITL pulse. Active only when a Space "
+            "runtime is bound (DAO JWT session)."
+        ),
+        "tools": [
+            "DAO_navigate",
+            "DAO_reports",
+            "DAO_pulse",
+            "DAO_store_knowledge",
+            "DAO_wiki_read",
+            "DAO_wiki_write",
+        ],
+        "includes": [],
+    },
+
     "discord": {
         "description": "Discord read and participate tools (fetch messages, search members, create threads)",
         "tools": ["discord"],

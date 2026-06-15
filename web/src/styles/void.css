@@ -1,0 +1,242 @@
+@theme {
+  /* Void surfaces */
+  --color-void: #000000;
+  --color-void-surface: #0a0a0a;
+  --color-void-elevated: #111111;
+  --color-void-border: #1a1a1a;
+  --color-void-border-strong: #2a2a2a;
+
+  /* Primary — Phantom lavender */
+  --color-primary: #ab9ff2;
+  --color-primary-dim: #9a8ae0;
+  --color-primary-muted: #7f6fd4;
+  --color-primary-foreground: #000000;
+
+  /* Signal */
+  --color-signal-green: #22c55e;
+  --color-signal-green-dim: #16a34a;
+  --color-signal-yellow: #eab308;
+  --color-signal-yellow-dim: #ca8a04;
+  --color-signal-red: #ef4444;
+  --color-signal-red-dim: #dc2626;
+
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a3a3a3;
+  --color-text-tertiary: #737373;
+  --color-text-muted: #525252;
+  --color-text-disabled: #404040;
+
+  --color-dept-research: #6366f1;
+  --color-dept-engineering: #06b6d4;
+  --color-dept-marketing: #f97316;
+  --color-dept-sales: #ec4899;
+  --color-dept-ops: #8b5cf6;
+
+  --font-display: var(--theme-font-display, "Space Grotesk"), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--theme-font-sans, "Inter"), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--theme-font-mono, "JetBrains Mono"), ui-monospace, monospace;
+
+  --radius-void-card: 16px;
+  --radius-void-compact: 12px;
+  --radius-pill: 9999px;
+
+  --ease-void-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-void-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-moderate: 250ms;
+  --duration-slow: 300ms;
+  --duration-signal: 200ms;
+
+  --animate-signal-flash-primary: signal-flash-primary var(--duration-signal) ease-out forwards;
+  --animate-signal-flash-green: signal-flash-green var(--duration-signal) ease-out forwards;
+  --animate-signal-flash-red: signal-flash-red var(--duration-signal) ease-out forwards;
+  --animate-fade-up: fade-up var(--duration-slow) var(--ease-void-out) forwards;
+  --animate-fade-in: fade-in var(--duration-normal) ease-out forwards;
+  --animate-scale-in: scale-in var(--duration-normal) var(--ease-void-out) forwards;
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.5s ease-in-out infinite;
+}
+
+:root {
+  --primary-glow: rgba(171, 159, 242, 0.15);
+  --primary-glow-strong: rgba(171, 159, 242, 0.25);
+  --signal-green-glow: rgba(34, 197, 94, 0.15);
+  --signal-yellow-glow: rgba(234, 179, 8, 0.12);
+  --signal-red-glow: rgba(239, 68, 68, 0.12);
+
+  --glass-bg: rgba(10, 10, 10, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-blur: 16px;
+
+  --glow-neutral: radial-gradient(
+    ellipse 60% 40% at 50% 0%,
+    rgba(255, 255, 255, 0.04),
+    transparent 65%
+  );
+  --glow-primary: radial-gradient(
+    ellipse 80% 50% at 50% -20%,
+    rgba(171, 159, 242, 0.16),
+    transparent 68%
+  );
+  --void-canvas-glow:
+    radial-gradient(ellipse 100% 72% at 50% -22%, rgba(171, 159, 242, 0.14), transparent 58%),
+    radial-gradient(ellipse 58% 42% at 100% 0%, rgba(171, 159, 242, 0.07), transparent 46%),
+    radial-gradient(ellipse 48% 36% at 0% 78%, rgba(171, 159, 242, 0.05), transparent 44%),
+    radial-gradient(ellipse 85% 55% at 50% 100%, rgba(255, 255, 255, 0.025), transparent 52%);
+  --void-canvas-vignette: radial-gradient(
+    ellipse 120% 100% at 50% 50%,
+    transparent 42%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+
+  --dept-research: #6366f1;
+  --dept-engineering: #06b6d4;
+  --dept-marketing: #f97316;
+  --dept-sales: #ec4899;
+  --dept-ops: #8b5cf6;
+}
+
+@keyframes signal-flash-primary {
+  0% { opacity: 0; }
+  15% { opacity: 0.18; background-color: var(--color-primary); }
+  100% { opacity: 0; }
+}
+
+@keyframes signal-flash-green {
+  0% { opacity: 0; }
+  15% { opacity: 0.18; background-color: var(--color-signal-green); }
+  100% { opacity: 0; }
+}
+
+@keyframes signal-flash-red {
+  0% { opacity: 0; }
+  15% { opacity: 0.18; background-color: var(--color-signal-red); }
+  100% { opacity: 0; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.void-canvas {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--color-void, #000000);
+  color: var(--color-text-primary, #ffffff);
+  min-height: 100%;
+}
+
+.void-canvas::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: var(--void-canvas-glow);
+}
+
+.void-canvas::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: var(--void-canvas-vignette);
+}
+
+.void-canvas > * {
+  position: relative;
+  z-index: 1;
+}
+
+.void-glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+    0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.void-glow {
+  position: relative;
+}
+
+.void-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--glow-neutral), var(--glow-primary);
+  z-index: 0;
+}
+
+.void-glow > * {
+  position: relative;
+  z-index: 1;
+}
+
+.void-card {
+  background: var(--color-void-surface);
+  border: 1px solid var(--color-void-border);
+  border-radius: var(--radius-void-card);
+  transition:
+    transform var(--duration-fast) var(--ease-void-in-out),
+    border-color var(--duration-fast) var(--ease-void-in-out),
+    box-shadow var(--duration-fast) var(--ease-void-in-out);
+}
+
+.void-card:hover {
+  border-color: var(--color-void-border-strong);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .void-card:hover {
+    transform: none;
+  }
+}
+
+.void-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-void-elevated) 0%,
+    color-mix(in srgb, var(--color-primary) 8%, var(--color-void-border-strong)) 50%,
+    var(--color-void-elevated) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}

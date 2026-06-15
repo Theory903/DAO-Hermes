@@ -14,7 +14,7 @@ support in the desktop app), streaming at **256 Hz** (EEG) and **64 Hz** (PPG).
 ### Electrode Positions (International 10-20 System)
 | Channel | Electrode | Position | Primary Signals |
 |---------|-----------|----------|-----------------|
-| CH1 | TP9 | Left Mastoid | Auditory cortex, verbal memory, jaw-clench artifact |
+| CH1 | TP9 | Left Mastoid | Auditory DAO, verbal memory, jaw-clench artifact |
 | CH2 | AF7 | Left Prefrontal | Executive function, approach motivation, eye blinks |
 | CH3 | AF8 | Right Prefrontal | Emotional regulation, vigilance, eye blinks |
 | CH4 | TP10 | Right Mastoid | Prosody, spatial hearing, non-verbal cognition |
@@ -104,7 +104,7 @@ Relative power values (sum ≈ 1.0 across all bands):
 | **APF** | argmax_f PSD(f) in [7.5, 12.5] Hz | Alpha Peak Frequency. Typical 8–12 Hz. Higher = faster cognitive processing. Slows with age/fatigue. |
 | **SNR** | 10 · log₁₀(P_signal / P_noise) | Signal-to-Noise Ratio. > 10 dB = clean, 3–10 dB = usable, < 3 dB = unreliable. |
 | **Coherence** | Inter-hemispheric coherence (0–1) | Cortical connectivity between hemispheres. |
-| **Mu Suppression** | Motor cortex suppression index | Low values during movement or motor imagery. |
+| **Mu Suppression** | Motor DAO suppression index | Low values during movement or motor imagery. |
 
 ---
 

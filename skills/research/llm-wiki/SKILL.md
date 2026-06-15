@@ -99,12 +99,30 @@ at hand before creating anything new.
 When the user asks to create or start a wiki:
 
 1. Determine the wiki path (from `$WIKI_PATH` env var, or ask the user; default `~/wiki`)
-2. Create the directory structure above
+2. Create **only** the root files: `SCHEMA.md`, `index.md`, `log.md`
 3. Ask the user what domain the wiki covers — be specific
 4. Write `SCHEMA.md` customized to the domain (see template below)
 5. Write initial `index.md` with sectioned header
 6. Write initial `log.md` with creation entry
 7. Confirm the wiki is ready and suggest first sources to ingest
+
+**Do not pre-create `raw/`, `entities/`, `concepts/`, `comparisons/`, or `queries/` directories.**
+Create a subdirectory the first time you store content that belongs there (e.g. create
+`entities/` only when filing the first entity page). Empty folder trees add noise and
+violate the “compile once, reuse forever” principle.
+
+### Lazy directory rules
+
+| First action | Create directory |
+|--------------|------------------|
+| Ingest a source file | `raw/{articles\|papers\|transcripts\|assets}/` as appropriate |
+| File an entity page | `entities/` |
+| File a concept page | `concepts/` |
+| File a comparison | `comparisons/` |
+| File a saved query result | `queries/` |
+
+Skip creating a page or folder when the material is ephemeral, duplicate, or below the
+importance thresholds in **When to Create a Page** below.
 
 ### SCHEMA.md Template
 

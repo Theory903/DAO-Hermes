@@ -1150,13 +1150,20 @@ def _build_job_prompt(job: dict, prerun_script: Optional[tuple] = None) -> str:
 
     skill_names = [str(name).strip() for name in skills if str(name).strip()]
     if not skill_names:
-        return _scan_assembled_cron_prompt(
+        assembled = _scan_assembled_cron_prompt(
             prompt,
             job,
             has_skills=False,
             has_injected_data=has_injected_data,
             user_prompt=user_prompt,
         )
+        try:
+            from DAO.cron.bridge import enrich_DAO_automation_prompt
+
+            assembled = enrich_DAO_automation_prompt(job, assembled)
+        except ImportError:
+            pass
+        return assembled
 
     from tools.skills_tool import skill_view
     from tools.skill_usage import bump_use
@@ -1300,6 +1307,12 @@ def _scan_assembled_cron_prompt(
             scan_error,
         )
         raise CronPromptInjectionBlocked(scan_error)
+    try:
+        from DAO.cron.bridge import enrich_DAO_automation_prompt
+
+        assembled = enrich_DAO_automation_prompt(job, assembled)
+    except ImportError:
+        pass
     return assembled
 
 
@@ -1312,6 +1325,38 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
     """
     job_id = job["id"]
     job_name = str(job.get("name") or job.get("prompt") or job_id or "cron job")
+
+    DAO_meta = None
+    DAO_bind = None
+
+    def _release_DAO_bind() -> None:
+        nonlocal DAO_bind
+        if DAO_bind is None:
+            return
+        try:
+            from DAO.cron.bridge import DAO_run_job_end
+
+            DAO_run_job_end(DAO_bind)
+        except ImportError:
+            pass
+        DAO_bind = None
+
+    try:
+        from DAO.cron.bridge import (
+            DAO_run_job_begin,
+            try_run_DAO_briefing_job,
+        )
+
+        DAO_meta, DAO_bind = DAO_run_job_begin(job)
+        if DAO_meta is not None:
+            early = try_run_DAO_briefing_job(job, DAO_meta)
+            if early is not None:
+                _release_DAO_bind()
+                return early
+    except ImportError:
+        pass
+    except Exception as exc:
+        logger.warning("DAO automation cron pre-run failed for %s: %s", job_id, exc)
 
     # ---------------------------------------------------------------
     # no_agent short-circuit — the script IS the job, no LLM involvement.
@@ -1429,7 +1474,8 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
     _session_db = None
     try:
         from hermes_state import SessionDB
-        _session_db = SessionDB()
+
+        _session_db = SessionDB(db_path=_get_hermes_home() / "state.db")
     except Exception as e:
         logger.debug("Job '%s': SQLite session store not available: %s", job.get("id", "?"), e)
 
@@ -1453,6 +1499,7 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
                 f"**Run Time:** {_hermes_now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
                 "Script gate returned `wakeAgent=false` — agent skipped.\n"
             )
+            _release_DAO_bind()
             return True, silent_doc, SILENT_MARKER, None
 
     try:
@@ -1479,9 +1526,11 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
             "and the match is a false positive, rephrase the content to avoid "
             "the threat pattern (`tools/cronjob_tools.py::_CRON_THREAT_PATTERNS`)."
         )
+        _release_DAO_bind()
         return False, blocked_doc, "", str(block_exc)
     if prompt is None:
         logger.info("Job '%s': script produced no output, skipping AI call.", job_name)
+        _release_DAO_bind()
         return True, "", SILENT_MARKER, None
     origin = _resolve_origin(job)
     _cron_session_id = f"cron_{job_id}_{_hermes_now().strftime('%Y%m%d_%H%M%S')}"
@@ -1783,7 +1832,29 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
         # env passthrough registrations) when the cron run hops into the worker
         # thread used for inactivity timeout monitoring.
         _cron_context = contextvars.copy_context()
-        _cron_future = _cron_pool.submit(_cron_context.run, agent.run_conversation, prompt)
+
+        def _run_cron_agent_turn() -> dict:
+            turn_bind = None
+            if DAO_meta is not None:
+                try:
+                    from DAO.gateway_runtime import bind_dao_runtime_from_meta
+                    from DAO.runtime import unbind_hermes_runtime
+
+                    turn_bind = bind_dao_runtime_from_meta(DAO_meta)
+                except ImportError:
+                    pass
+            try:
+                return agent.run_conversation(prompt)
+            finally:
+                if turn_bind is not None:
+                    try:
+                        from DAO.runtime import unbind_hermes_runtime
+
+                        unbind_hermes_runtime(turn_bind)
+                    except ImportError:
+                        pass
+
+        _cron_future = _cron_pool.submit(_cron_context.run, _run_cron_agent_turn)
         _inactivity_timeout = False
         try:
             if _cron_inactivity_limit is None:
@@ -1965,6 +2036,7 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
             cleanup_stale_async_clients()
         except Exception as e:
             logger.debug("Job '%s': failed to reap stale auxiliary clients: %s", job_id, e)
+        _release_DAO_bind()
 
 
 def tick(verbose: bool = True, adapters=None, loop=None, sync: bool = True) -> int:
@@ -2081,11 +2153,23 @@ def tick(verbose: bool = True, adapters=None, loop=None, sync: bool = True) -> i
                     error = "Agent completed but produced empty response (model error, timeout, or misconfiguration)"
 
                 mark_job_run(job["id"], success, error, delivery_error=delivery_error)
+                try:
+                    from DAO.cron.bridge import DAO_after_job_run
+
+                    DAO_after_job_run(job, success, error=error)
+                except ImportError:
+                    pass
                 return True
 
             except Exception as e:
                 logger.error("Error processing job %s: %s", job['id'], e)
                 mark_job_run(job["id"], False, str(e))
+                try:
+                    from DAO.cron.bridge import DAO_after_job_run
+
+                    DAO_after_job_run(job, False, error=str(e))
+                except ImportError:
+                    pass
                 return False
 
         # Partition due jobs: those with a per-job workdir mutate

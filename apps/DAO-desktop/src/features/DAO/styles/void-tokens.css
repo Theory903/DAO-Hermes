@@ -1,0 +1,97 @@
+.DAO-void {
+  --void: #000000;
+  --void-surface: #0a0a0a;
+  --void-elevated: #111111;
+  --void-border: #1a1a1a;
+  --void-border-strong: #2a2a2a;
+  --void-topbar-height: 3.25rem;
+  --DAO-brand-inset-left: 0;
+  --DAO-titlebar-inset-right: 0.875rem;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --primary: #ab9ff2;
+  --primary-dim: #9a8ae0;
+  --primary-muted: #7f6fd4;
+  --primary-foreground: #000000;
+  --primary-glow: rgba(171, 159, 242, 0.15);
+  --primary-glow-strong: rgba(171, 159, 242, 0.25);
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --text-muted: #525252;
+  --text-disabled: #404040;
+  --signal-green: #22c55e;
+  --signal-yellow: #eab308;
+  --signal-red: #ef4444;
+  --radius-void-card: 16px;
+  --radius-void-compact: 12px;
+  --radius-void-pill: 9999px;
+}
+
+.DAO-glass {
+  background: rgba(10, 10, 10, 0.72);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--void-border);
+}
+
+.DAO-glow {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, var(--primary-glow), transparent),
+    var(--void);
+}
+
+.DAO-card {
+  border-radius: var(--radius-void-card);
+  border: 1px solid var(--void-border);
+  background: var(--void-surface);
+}
+
+.DAO-pill {
+  border-radius: 9999px;
+}
+
+.DAO-nav-active {
+  color: var(--primary);
+  background: rgba(171, 159, 242, 0.16);
+  border-color: rgba(171, 159, 242, 0.45);
+  box-shadow: 0 0 0 1px rgba(171, 159, 242, 0.18);
+  font-weight: 600;
+}
+
+.DAO-nav-item:not(.DAO-nav-active) {
+  color: var(--text-muted);
+}
+
+.DAO-nav-item:not(.DAO-nav-active):hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.DAO-nav-sidebar-toggle {
+  cursor: pointer;
+}
+
+.DAO-nav-sidebar-toggle[aria-pressed='true'] {
+  color: var(--primary);
+  background: rgba(171, 159, 242, 0.16);
+  border-color: rgba(171, 159, 242, 0.45);
+  box-shadow: 0 0 0 1px rgba(171, 159, 242, 0.18);
+}
+
+.DAO-skeleton {
+  animation: DAO-pulse 1.5s ease-in-out infinite;
+  background: var(--void-elevated);
+}
+
+@keyframes DAO-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}

@@ -4,6 +4,7 @@ import { PageHeaderContext } from "./page-header-context";
 import { resolvePageTitle } from "@/lib/resolve-page-title";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
+import { isDAOEmbed } from "@/lib/DAO-embed";
 
 export function PageHeaderProvider({
   children,
@@ -38,6 +39,7 @@ export function PageHeaderProvider({
   /** Env jump-nav is wide — stack below title on small screens so KEYS stays readable. */
   const isEnvRoute =
     pathname === "/env" || pathname.startsWith("/env/");
+  const DAO = isDAOEmbed();
 
   const value = useMemo(
     () => ({
@@ -54,8 +56,16 @@ export function PageHeaderProvider({
         <header
           className={cn(
             "z-1 w-full shrink-0",
-            "box-border border-b border-current/20",
-            "bg-background-base/40 backdrop-blur-sm",
+            DAO
+              ? cn(
+                  "box-border border-b border-primary/12",
+                  "bg-void-surface/72 backdrop-blur-xl",
+                  "shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
+                )
+              : cn(
+                  "box-border border-b border-current/20",
+                  "bg-background-base/40 backdrop-blur-sm",
+                ),
             // Mobile stacks title + toolbar — fixed h-14 clips content; desktop stays one row.
             "min-h-0 overflow-x-hidden overflow-y-visible py-3 sm:h-14 sm:min-h-[3.5rem] sm:overflow-hidden sm:py-0",
           )}
@@ -81,14 +91,17 @@ export function PageHeaderProvider({
             >
               <h1
                 className={cn(
-                  "font-expanded min-w-0 text-sm font-bold tracking-[0.08em] text-midground",
+                  "min-w-0",
+                  DAO
+                    ? "font-display text-base font-semibold tracking-normal text-text-primary"
+                    : "font-expanded text-sm font-bold tracking-[0.08em] text-midground",
                   afterTitle && isEnvRoute
                     ? "max-w-full sm:min-w-0 sm:shrink sm:truncate"
                     : afterTitle
                       ? "shrink truncate"
                       : "truncate",
                 )}
-                style={{ mixBlendMode: "plus-lighter" }}
+                style={DAO ? undefined : { mixBlendMode: "plus-lighter" }}
               >
                 {displayTitle}
               </h1>

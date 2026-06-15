@@ -82,7 +82,7 @@ metric signal. Explain the metric connection to the user.
 1. Read or listen to a sequence of spoken numbers
 2. Track which number appeared 2 positions back (2-back)
 3. If comfortable, increase to 3-back
-**Effect**: Activates prefrontal cortex, lifts executive function
+**Effect**: Activates prefrontal DAO, lifts executive function
 
 ### Novel Stimulation Burst
 **Duration**: 2–3 minutes
@@ -179,7 +179,7 @@ metric signal. Explain the metric connection to the user.
 2. Visualize yourself successfully completing a meaningful goal
 3. Squeeze your left hand into a fist for 10 seconds, release
 4. Repeat the visualization + left-hand squeeze 3–4 times
-**Effect**: Activates left prefrontal cortex, shifts FAA positive
+**Effect**: Activates left prefrontal DAO, shifts FAA positive
 
 ### Loving-Kindness (Metta)
 **Duration**: 5–10 minutes
@@ -209,7 +209,7 @@ metric signal. Explain the metric connection to the user.
 2. Rub your palms together slowly
 3. Gently touch your forehead, temples
 4. Continue for 3–5 minutes while breathing slowly
-**Effect**: Disrupts amygdala-cortex encoding loop, reduces distress
+**Effect**: Disrupts amygdala-DAO encoding loop, reduces distress
 
 ### Anxiety Surfing
 **Duration**: ~8 minutes
@@ -341,14 +341,14 @@ metric signal. Explain the metric connection to the user.
 3. Gentle neck circles — 5 each direction
 4. Shoulder shrugs — 10 reps (squeeze up, release)
 
-### Motor Cortex Activation
+### Motor DAO Activation
 **Duration**: 2 minutes
 **Trigger**: Very high stillness, prolonged static sitting
 **Instructions**:
 1. Cross-body movements: touch right hand to left knee, alternate 10 times
 2. Shake out hands and feet for 15 seconds
 3. Roll ankles and wrists 5 times each direction
-**Effect**: Resets proprioception, activates motor cortex
+**Effect**: Resets proprioception, activates motor DAO
 
 ### Cognitive Load Offload (Mind Dump)
 **Duration**: 5 minutes

@@ -1,0 +1,1315 @@
+.DAO-app {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.DAO-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.DAO-topbar {
+  position: relative;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: 'brand nav utilities';
+  align-items: center;
+  gap: 0.75rem 1rem;
+  box-sizing: border-box;
+  padding-block: var(--space-3);
+  padding-inline: 0 var(--DAO-titlebar-inset-right);
+  border-bottom: 1px solid var(--void-border);
+  min-height: var(--void-topbar-height, 3.25rem);
+  -webkit-app-region: drag;
+}
+
+.DAO-topbar-slot {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.DAO-topbar-slot--start {
+  grid-area: brand;
+  justify-self: start;
+  padding-inline-start: var(--DAO-brand-inset-left, 0);
+  padding-inline-end: 0.25rem;
+}
+
+.DAO-topbar-slot--center {
+  grid-area: nav;
+  justify-self: center;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.DAO-topbar-slot--end {
+  grid-area: utilities;
+  justify-self: end;
+  flex-shrink: 0;
+}
+
+.DAO-topbar a,
+.DAO-topbar button,
+.DAO-topbar [role='group'],
+.DAO-topbar .DAO-nav,
+.DAO-topbar input,
+.DAO-topbar [data-radix-popper-content-wrapper] {
+  -webkit-app-region: no-drag;
+}
+
+.DAO-topbar.DAO-glass {
+  border: none;
+  border-bottom: 1px solid var(--void-border);
+}
+
+.DAO-topbar--company {
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+  height: var(--void-topbar-height, 3.25rem);
+  min-height: var(--void-topbar-height, 3.25rem);
+  max-height: var(--void-topbar-height, 3.25rem);
+  padding-block: 0;
+  align-items: center;
+}
+
+.DAO-topbar-brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  max-width: min(17rem, 34vw);
+}
+
+.DAO-topbar-brand--navbar {
+  margin-block: 0;
+}
+
+.DAO-topbar-brand-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.DAO-brand-mark--topbar {
+  flex-shrink: 0;
+}
+
+.DAO-space-switcher-brand-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  line-height: 1;
+}
+
+.DAO-topbar-brand-mark {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--text-primary);
+  transition: color 140ms ease;
+}
+
+.DAO-topbar-brand-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  min-width: 0;
+}
+
+.DAO-topbar-brand-space-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.DAO-topbar-brand-eyebrow {
+  flex-shrink: 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.DAO-topbar-brand-space {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-secondary);
+  transition: color 140ms ease;
+}
+
+.DAO-topbar-brand-sep {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.45;
+}
+
+.DAO-space-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--radius-void-pill);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.DAO-space-switcher:hover {
+  border-color: var(--void-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.DAO-space-switcher:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.DAO-space-switcher--brand {
+  box-sizing: border-box;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0.3125rem 0.625rem;
+  margin: 0;
+  font: inherit;
+  border: 1px solid transparent;
+  border-radius: var(--radius-void-pill);
+  background: transparent;
+  -webkit-app-region: no-drag;
+}
+
+.DAO-space-switcher--brand:hover,
+.DAO-space-switcher--brand[aria-expanded='true'] {
+  border-color: var(--void-border);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: none;
+}
+
+.DAO-space-switcher--brand:hover .DAO-topbar-brand-mark,
+.DAO-space-switcher--brand[aria-expanded='true'] .DAO-topbar-brand-mark {
+  color: var(--text-primary);
+}
+
+.DAO-space-switcher--brand:hover .DAO-topbar-brand-space,
+.DAO-space-switcher--brand[aria-expanded='true'] .DAO-topbar-brand-space {
+  color: var(--text-primary);
+}
+
+.DAO-brand-glyph {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: transform 160ms ease;
+}
+
+.DAO-brand-glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.DAO-space-switcher--brand:hover .DAO-brand-glyph,
+.DAO-space-switcher--brand[aria-expanded='true'] .DAO-brand-glyph {
+  transform: rotate(120deg);
+}
+
+.DAO-space-switcher--sidebar {
+  width: 100%;
+  box-sizing: border-box;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-height: 0;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--void-border);
+  border-radius: var(--radius-void-compact);
+  background: var(--void-elevated);
+  -webkit-app-region: no-drag;
+}
+
+.DAO-space-switcher-icon {
+  margin-top: 0.125rem;
+  color: var(--primary);
+  opacity: 0.9;
+}
+
+.DAO-space-switcher-eyebrow {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.DAO-space-switcher-sidebar-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 0.125rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+
+.DAO-space-switcher--sidebar:hover {
+  color: var(--text-primary);
+  border-color: var(--void-border-strong);
+  background: rgba(17, 17, 17, 0.95);
+}
+
+.DAO-space-switcher-label {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.DAO-sidebar-header-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.DAO-sidebar-divider {
+  height: 1px;
+  margin: 0.625rem 0 0.5rem;
+  background: var(--void-border);
+  opacity: 0.9;
+}
+
+.DAO-sidebar-actions {
+  padding-top: 0;
+}
+
+.DAO-sidebar-actions [data-slot='sidebar-menu'] {
+  gap: 0.375rem;
+}
+
+.DAO-space-switcher-chevron {
+  margin-inline-start: 0.125rem;
+  opacity: 0.55;
+  color: var(--text-secondary);
+  transition:
+    transform 140ms ease,
+    opacity 120ms ease,
+    color 120ms ease;
+}
+
+.DAO-space-switcher-chevron--brand {
+  margin-inline-start: 0.0625rem;
+  opacity: 0.4;
+  color: var(--text-muted);
+}
+
+.DAO-space-switcher--brand:hover .DAO-space-switcher-chevron--brand,
+.DAO-space-switcher--brand[aria-expanded='true'] .DAO-space-switcher-chevron--brand {
+  opacity: 0.9;
+  color: var(--text-secondary);
+}
+
+.DAO-space-switcher-chevron--open {
+  transform: rotate(180deg);
+}
+
+.DAO-space-switcher-menu {
+  min-width: 13.5rem;
+  padding: 0.375rem;
+  border-radius: var(--radius-void-compact);
+  border-color: var(--void-border-strong);
+  background: color-mix(in srgb, var(--void-elevated) 96%, #000);
+}
+
+.DAO-space-switcher-menu-label {
+  padding: 0.375rem 0.5rem 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.DAO-space-switcher-menu .DAO-space-switcher-item {
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-block: 0.0625rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: calc(var(--radius-void-compact) - 4px);
+}
+
+.DAO-space-switcher-item--active {
+  background: rgba(171, 159, 242, 0.1);
+}
+
+.DAO-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-inline: 0.25rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.DAO-nav--company,
+.DAO-nav--chat {
+  margin-inline: 0;
+}
+
+.DAO-nav-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding: 0.125rem;
+  border-radius: var(--radius-void-pill);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+}
+
+.DAO-nav-segment--chat {
+  gap: 0.25rem;
+  background: rgba(171, 159, 242, 0.06);
+  border-color: rgba(171, 159, 242, 0.12);
+}
+
+.DAO-nav-segment--knowledge {
+  background: rgba(171, 159, 242, 0.05);
+  border-color: rgba(171, 159, 242, 0.18);
+}
+
+.DAO-nav-segment--space {
+  background: rgba(255, 255, 255, 0.015);
+  border-color: var(--void-border);
+}
+
+.DAO-nav-segment--utilities {
+  gap: 0.125rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--void-border);
+}
+
+.DAO-nav-item--utility {
+  min-width: 2rem;
+  min-height: 2rem;
+  padding-inline: 0.5rem;
+  cursor: pointer;
+}
+
+.DAO-nav-item--utility.DAO-nav-item--pressed {
+  color: var(--text-muted);
+}
+
+button.DAO-nav-item {
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+  appearance: none;
+}
+
+.DAO-nav-item--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.DAO-nav-chat-toggle[aria-pressed='true'] {
+  color: var(--primary);
+  background: rgba(171, 159, 242, 0.16);
+  border-color: rgba(171, 159, 242, 0.45);
+  box-shadow: 0 0 0 1px rgba(171, 159, 242, 0.18);
+}
+
+.DAO-boot-stack {
+  align-items: center;
+  text-align: center;
+  gap: 0.65rem;
+}
+
+.DAO-boot-eyebrow {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.DAO-boot-caption {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .DAO-nav {
+    scroll-behavior: auto;
+  }
+}
+
+.DAO-nav-divider {
+  width: 1px;
+  height: 1.5rem;
+  margin-inline: 0.375rem;
+  background: var(--void-border-strong);
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.DAO-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.DAO-nav-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 1.875rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius-void-pill);
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.DAO-nav-item svg {
+  flex-shrink: 0;
+}
+
+.DAO-nav-item:hover {
+  color: var(--text-primary);
+  border-color: var(--void-border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.DAO-nav-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.DAO-screen {
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: var(--space-6) clamp(1.25rem, 4vw, 4rem) var(--space-8);
+}
+
+.DAO-screen.void-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.DAO-screen-inner {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.DAO-screen-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.DAO-screen-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.DAO-panel-narrow {
+  max-width: 30rem;
+}
+
+.DAO-stack-spaced {
+  margin-top: var(--space-4);
+}
+
+.DAO-eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.DAO-title {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.DAO-title-sm {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.DAO-subtitle {
+  margin: 0.375rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 52ch;
+}
+
+.DAO-space-switcher--sidebar .DAO-space-switcher-chevron {
+  margin-top: 0.2rem;
+  align-self: flex-start;
+}
+
+.DAO-muted {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.DAO-error {
+  color: var(--signal-red);
+}
+
+.DAO-section {
+  margin-top: 2rem;
+}
+
+.DAO-section .DAO-title-sm {
+  margin-bottom: 0.35rem;
+}
+
+.DAO-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.DAO-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  margin-top: 0.75rem;
+}
+
+.DAO-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.DAO-stat {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--void-border);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+}
+
+.DAO-action-card {
+  text-align: left;
+  padding: 1rem;
+  cursor: pointer;
+  color: inherit;
+  background: var(--void-surface);
+}
+
+.DAO-action-card:hover {
+  border-color: rgba(171, 159, 242, 0.45);
+}
+
+.DAO-pre {
+  margin: 0;
+  padding: 1rem;
+  white-space: pre-wrap;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.DAO-empty {
+  padding: 1.25rem;
+}
+
+.DAO-skeleton-row {
+  height: 3.5rem;
+}
+
+.DAO-dept-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+.DAO-dept-lane {
+  padding: 1rem;
+  min-height: 6rem;
+}
+
+.DAO-feed {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-feed-item {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.DAO-badge {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--void-border);
+  color: var(--text-secondary);
+}
+
+.DAO-badge-live {
+  border-color: rgba(34, 197, 94, 0.35);
+  color: var(--signal-green);
+}
+
+.DAO-drive-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(180px, 240px) 1fr;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .DAO-drive-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.DAO-drive-folders,
+.DAO-drive-objects {
+  padding: 1rem;
+}
+
+.DAO-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.DAO-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.DAO-link:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.DAO-hitl-card {
+  padding: 1rem 1.1rem;
+  border-left: 3px solid var(--signal-yellow);
+}
+
+.DAO-hitl-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.DAO-hitl-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.DAO-badge-pending {
+  border-color: rgba(234, 179, 8, 0.35);
+  color: var(--signal-yellow);
+}
+
+.DAO-flash {
+  margin: 0 0 var(--space-4);
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-void-compact);
+  font-size: 0.9rem;
+}
+
+.DAO-flash-ok {
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: var(--signal-green);
+}
+
+.DAO-flash-no {
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: var(--signal-red);
+}
+
+.DAO-tool-trace {
+  margin-top: 0.75rem;
+  max-height: 10rem;
+  overflow: auto;
+}
+
+.DAO-error-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.DAO-banner {
+  margin: 0 0 var(--space-4);
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-void-compact);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  color: var(--signal-yellow);
+  font-size: 0.9rem;
+}
+
+.DAO-drive-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  align-items: center;
+}
+
+.DAO-drive-toolbar .void-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.DAO-drive-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.DAO-hidden-input {
+  display: none;
+}
+
+.DAO-settings-link {
+  display: inline-flex;
+  width: fit-content;
+  text-decoration: none;
+  justify-content: center;
+}
+
+.DAO-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.88em;
+}
+
+.DAO-error-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) 0.9rem;
+  border-radius: var(--radius-void-compact);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.DAO-error-note .DAO-error {
+  margin: 0;
+}
+
+.DAO-settings-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  align-items: start;
+}
+
+.DAO-settings-panel {
+  padding: 1.375rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.DAO-settings-panel-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.DAO-settings-copy {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.DAO-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.DAO-settings-actions .void-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.DAO-settings-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-settings-links--space {
+  margin-top: 0.125rem;
+}
+
+.DAO-settings-link-row--featured {
+  border-color: rgba(171, 159, 242, 0.22);
+  background: rgba(171, 159, 242, 0.05);
+}
+
+.DAO-settings-link-row--featured:hover {
+  border-color: rgba(171, 159, 242, 0.38);
+  background: rgba(171, 159, 242, 0.09);
+}
+
+.DAO-settings-link-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius-void-compact);
+  border: 1px solid var(--void-border);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.DAO-settings-link-row:hover {
+  border-color: rgba(171, 159, 242, 0.45);
+  background: rgba(171, 159, 242, 0.06);
+}
+
+.DAO-settings-link-row:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.DAO-settings-link-row span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.DAO-settings-link-row strong {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.DAO-settings-primary-link {
+  width: 100%;
+  text-decoration: none;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 1200px) {
+  .DAO-topbar-brand {
+    max-width: min(11rem, 38vw);
+  }
+
+  .DAO-topbar-brand-meta {
+    display: none;
+  }
+
+  .DAO-space-switcher--brand {
+    gap: 0.4rem;
+    padding-inline: 0.4rem;
+  }
+}
+
+/* Breakpoints below are ordered widest→narrowest so the cascade resolves
+   predictably (narrower overrides wider). Don't reorder. */
+
+@media (max-width: 900px) {
+  .DAO-topbar {
+    gap: 0.5rem 0.75rem;
+  }
+
+  .DAO-nav-segment {
+    gap: 0.125rem;
+  }
+
+  .DAO-nav-item {
+    min-height: 2rem;
+    padding: 0.4rem 0.55rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .DAO-topbar {
+    padding-inline: 0 max(0.625rem, var(--DAO-titlebar-inset-right));
+  }
+
+  .DAO-nav,
+  .DAO-nav--company,
+  .DAO-nav--chat {
+    justify-content: flex-start;
+    padding-inline: 0;
+    margin-inline: 0;
+  }
+
+  .DAO-nav-divider {
+    height: 1rem;
+    margin-inline: 0.05rem;
+  }
+
+  /* Collapse to icon-only, but the active surface keeps its label so the
+     current location is always legible. */
+  .DAO-nav-item .DAO-nav-label {
+    display: none;
+  }
+
+  .DAO-nav-item {
+    padding: 0.45rem;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+
+  .DAO-nav-item.DAO-nav-active .DAO-nav-label {
+    display: inline;
+  }
+
+  .DAO-nav-item.DAO-nav-active {
+    min-width: 0;
+    padding-inline: 0.6rem;
+  }
+
+  .DAO-screen {
+    padding-block: var(--space-4) var(--space-6);
+    padding-inline: 1rem;
+  }
+
+  .DAO-screen-header {
+    margin-bottom: var(--space-4);
+  }
+
+  .DAO-company-footer {
+    min-height: 1.75rem;
+    height: auto;
+    padding-block: 0.125rem;
+  }
+
+  .DAO-company-footer [data-slot='button'],
+  .DAO-company-footer button,
+  .DAO-company-footer a {
+    min-height: 1.75rem;
+    padding-inline: 0.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Stack: brand + window controls on top, nav scrolls full-width below.
+     Keeps utilities clear of the OS overlay in every window state. */
+  .DAO-topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand utilities'
+      'nav nav';
+    row-gap: 0.375rem;
+    padding-block: 0.5rem;
+    min-height: auto;
+    height: auto;
+    max-height: none;
+  }
+
+  .DAO-topbar--company,
+  html.DAO-void .void-chat-topbar.DAO-topbar,
+  [data-hermes-theme='void'] .void-chat-topbar.DAO-topbar {
+    height: auto;
+    min-height: var(--void-topbar-height, 3.25rem);
+    max-height: none;
+  }
+
+  .DAO-topbar-slot--center {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .DAO-topbar-brand {
+    max-width: min(9.5rem, 52vw);
+  }
+
+  .DAO-nav {
+    width: 100%;
+    justify-content: flex-start;
+    /* Fade the trailing edge to signal the row scrolls horizontally. */
+    mask-image: linear-gradient(to right, #000 94%, transparent);
+    -webkit-mask-image: linear-gradient(to right, #000 94%, transparent);
+  }
+
+  .DAO-nav-item--utility {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .DAO-nav-utility-optional {
+    display: none;
+  }
+
+  .DAO-topbar-brand {
+    max-width: min(8rem, 46vw);
+  }
+}
+
+/* Touch / pen input on any OS gets comfortable 40px hit targets. */
+@media (pointer: coarse) {
+  .DAO-nav-item,
+  .DAO-nav-item--utility {
+    min-height: 2.5rem;
+  }
+
+  .DAO-nav-item {
+    min-width: 2.5rem;
+  }
+}
+
+.DAO-company-footer {
+  border-top: 1px solid var(--void-border);
+  background: var(--void-surface);
+  min-height: 1.25rem;
+}
+
+.DAO-main > .DAO-company-footer {
+  margin-top: auto;
+}
+
+.DAO-notifications-trigger {
+  position: relative;
+}
+
+.DAO-notifications-trigger--active {
+  color: var(--signal-yellow, #f5c842);
+}
+
+.DAO-notifications-badge {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.15rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding-inline: 0.2rem;
+  border-radius: 999px;
+  background: var(--signal-yellow, #f5c842);
+  color: #111;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  line-height: 1rem;
+  text-align: center;
+}
+
+.DAO-notifications-panel {
+  width: min(22rem, calc(100vw - 2rem));
+  padding: 0;
+  overflow: hidden;
+}
+
+.DAO-notifications-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--void-border);
+}
+
+.DAO-notifications-eyebrow {
+  margin: 0;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.DAO-notifications-title {
+  margin: 0.15rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.DAO-notifications-error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--signal-red, #ff6b6b);
+}
+
+.DAO-notifications-empty {
+  padding: 1.25rem 1rem 1.5rem;
+  text-align: center;
+}
+
+.DAO-notifications-empty-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.DAO-notifications-empty-desc {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.DAO-notifications-list {
+  margin: 0;
+  padding: 0.5rem;
+  list-style: none;
+  max-height: min(24rem, 60vh);
+  overflow-y: auto;
+}
+
+.DAO-notifications-item {
+  border-radius: var(--radius-void-compact, 0.5rem);
+  border: 1px solid var(--void-border);
+  background: color-mix(in srgb, var(--void-surface) 92%, transparent);
+}
+
+.DAO-notifications-item + .DAO-notifications-item {
+  margin-top: 0.5rem;
+}
+
+.DAO-notifications-item-main {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.5rem;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.DAO-notifications-item-main:hover {
+  background: color-mix(in srgb, var(--void-elevated) 60%, transparent);
+}
+
+.DAO-notifications-item-title {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.DAO-notifications-item-meta {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+}
+
+.DAO-notifications-item-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-top: 0.35rem;
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+}
+
+.DAO-notifications-item-actions {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0 0.75rem 0.75rem;
+}

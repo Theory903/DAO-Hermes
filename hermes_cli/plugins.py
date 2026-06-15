@@ -1115,6 +1115,10 @@ class PluginManager:
     # Public
     # -----------------------------------------------------------------------
 
+    def register_core_hook(self, hook_name: str, callback: Callable) -> None:
+        """Register a lifecycle hook from Cortex/DAO (outside plugin register())."""
+        self._hooks.setdefault(hook_name, []).append(callback)
+
     def discover_and_load(self, force: bool = False) -> None:
         """Scan all plugin sources and load each plugin found.
 

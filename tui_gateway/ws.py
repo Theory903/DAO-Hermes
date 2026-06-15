@@ -189,6 +189,14 @@ async def handle_ws(ws: Any) -> None:
         _log.info("ws accepted peer=%s", peer)
 
         transport = WSTransport(ws, asyncio.get_running_loop(), peer=peer)
+        snap = getattr(getattr(ws, "state", None), "DAO_bind_snapshot", None)
+        if snap:
+            try:
+                from DAO.gateway_runtime import attach_transport_dao_auth
+
+                attach_transport_dao_auth(transport, snap)
+            except ImportError:
+                pass
 
         ready_ok = await transport.write_async(
             {
@@ -300,6 +308,12 @@ async def handle_ws(ws: Any) -> None:
         reaped_sessions = 0
         detached_sessions = 0
         if transport is not None:
+            try:
+                from DAO.gateway_runtime import detach_transport_dao_auth
+
+                detach_transport_dao_auth(transport)
+            except ImportError:
+                pass
             transport.close()
 
             # Reap sessions this transport owned (close_on_disconnect sidecar
