@@ -53,7 +53,8 @@
       "@electron/get": "4.0.3"
     },
     "@electron/asar": "4.2.0",
-    "@electron/get": "4.0.3"
+    "@electron/get": "4.0.3",
+    "@assistant-ui/store": "0.2.13"
   },
   "engines": {
     "node": ">=20.0.0"
