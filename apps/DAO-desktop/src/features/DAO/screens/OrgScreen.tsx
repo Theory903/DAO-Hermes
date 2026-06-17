@@ -12,7 +12,6 @@ import {
 import {
   applyOrgTemplate,
   createAgent,
-  getCommandSnapshot,
   getOrgChart,
   listAgents,
   listOrgTemplates,
@@ -36,10 +35,8 @@ import {
   CompanyScroll,
   DAOCompanyShell,
 } from "./_company-shell";
-import { OrgActivityPanel } from "./org/OrgActivityPanel";
-import { OrgFloorPanel } from "./org/OrgFloorPanel";
 
-type OrgView = "floor" | "structure" | "activity" | "setup";
+type OrgView = "structure" | "setup";
 type StructureMode = "departments" | "hierarchy";
 type EditorMode =
   | { kind: "edit"; agentId: string }
@@ -107,14 +104,13 @@ function defaultParentId(
   return nodes.find((n) => n.department === department && n.agent_type === "lead")?.id ?? null;
 }
 
-export function OrgScreen() {
+export function OrgScreen({ embedded = false }: { embedded?: boolean }) {
   const space = useSpaceContext();
-  const [view, setView] = useState<OrgView>("floor");
+  const [view, setView] = useState<OrgView>("structure");
   const [structureMode, setStructureMode] = useState<StructureMode>("departments");
   const chart = useAsync(() => getOrgChart(space.id), [space.id]);
   const agentsList = useAsync(() => listAgents(space.id), [space.id]);
   const templates = useAsync(() => listOrgTemplates(space.id), [space.id]);
-  const snapshot = useAsync(() => getCommandSnapshot(space.id), [space.id]);
 
   const [editor, setEditor] = useState<EditorMode>(null);
   const [draft, setDraft] = useState<Partial<AgentRow> & { agent_type?: string }>({});
@@ -156,8 +152,8 @@ export function OrgScreen() {
   }, [enabledKeys, byDept]);
 
   const reloadAll = useCallback(async () => {
-    await Promise.all([chart.reload(), agentsList.reload(), templates.reload(), snapshot.reload()]);
-  }, [chart, agentsList, templates, snapshot]);
+    await Promise.all([chart.reload(), agentsList.reload(), templates.reload()]);
+  }, [chart, agentsList, templates]);
 
   const editingAgent = editor?.kind === "edit" ? agentsById.get(editor.agentId) : null;
   const isAiLead = editingAgent?.agent_type === "ai_lead";
@@ -285,60 +281,40 @@ export function OrgScreen() {
     return nodes.filter((n) => n.id !== exclude);
   }, [nodes, editor]);
 
-  const pendingHitl = snapshot.data?.pending_hitl ?? 0;
-  const handoffCount = snapshot.data?.recent_handoffs?.length ?? 0;
+  const orgFilters = (
+    <UtilChipSwitch aria-label="Organization views">
+      <UtilChipSwitchItem active={view === "structure"} count={nodes.length} onClick={() => setView("structure")}>
+        Structure
+      </UtilChipSwitchItem>
+      <UtilChipSwitchItem active={view === "setup"} onClick={() => setView("setup")}>
+        Customize
+      </UtilChipSwitchItem>
+    </UtilChipSwitch>
+  );
 
-  return (
-    <DAOCompanyShell
-      description={`${leadName} runs the live floor and supervises department leads and workers.`}
-      filters={
-        <UtilChipSwitch aria-label="Org views">
-          <UtilChipSwitchItem active={view === "floor"} onClick={() => setView("floor")}>
-            Floor
-          </UtilChipSwitchItem>
-          <UtilChipSwitchItem active={view === "structure"} count={nodes.length} onClick={() => setView("structure")}>
-            Structure
-          </UtilChipSwitchItem>
-          <UtilChipSwitchItem active={view === "activity"} count={handoffCount} onClick={() => setView("activity")}>
-            Activity
-          </UtilChipSwitchItem>
-          <UtilChipSwitchItem active={view === "setup"} onClick={() => setView("setup")}>
-            Customize
-          </UtilChipSwitchItem>
-        </UtilChipSwitch>
-      }
-      headerTrailing={
-        <div className="flex items-center gap-2">
-          {pendingHitl > 0 ? (
-            <span className="DAO-company-pill DAO-company-pill--pending">{pendingHitl} approval{pendingHitl === 1 ? "" : "s"}</span>
-          ) : null}
-          <Button
-            aria-label="Refresh"
-            className="text-(--ui-text-tertiary) hover:bg-transparent hover:text-foreground"
-            onClick={() => reloadAll()}
-            size="icon-xs"
-            type="button"
-            variant="ghost"
-          >
-            <Codicon name="refresh" size="0.875rem" spinning={chart.loading || snapshot.loading} />
-          </Button>
-        </div>
-      }
-      searchHidden
-      title="Org"
+  const orgTrailing = (
+    <Button
+      aria-label="Refresh"
+      className="text-(--ui-text-tertiary) hover:bg-transparent hover:text-foreground"
+      onClick={() => reloadAll()}
+      size="icon-xs"
+      type="button"
+      variant="ghost"
     >
+      <Codicon name="refresh" size="0.875rem" spinning={chart.loading} />
+    </Button>
+  );
+
+  const body = (
+    <>
+      {embedded ? (
+        <div className="DAO-control-org-toolbar">
+          {orgFilters}
+          {orgTrailing}
+        </div>
+      ) : null}
       <CompanyScroll>
-        {view === "floor" ? (
-          snapshot.loading ? (
-            <CompanyLoading label="Loading floor snapshot…" />
-          ) : snapshot.error ? (
-            <CompanyError message={snapshot.error} onRetry={snapshot.reload} />
-          ) : (
-            <OrgFloorPanel leadName={leadName} pendingHitl={pendingHitl} snapshot={snapshot.data} />
-          )
-        ) : view === "activity" ? (
-          <OrgActivityPanel snapshot={snapshot.data} />
-        ) : chart.loading ? (
+        {chart.loading && view === "structure" ? (
           <CompanyLoading label="Loading org chart…" />
         ) : chart.error ? (
           <CompanyError message={chart.error} onRetry={chart.reload} />
@@ -478,6 +454,22 @@ export function OrgScreen() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+    </>
+  );
+
+  if (embedded) {
+    return body;
+  }
+
+  return (
+    <DAOCompanyShell
+      description="Department structure, agents, and org templates."
+      filters={orgFilters}
+      headerTrailing={orgTrailing}
+      searchHidden
+      title="Organization"
+    >
+      {body}
     </DAOCompanyShell>
   );
 }

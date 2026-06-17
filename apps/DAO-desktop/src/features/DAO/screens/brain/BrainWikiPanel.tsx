@@ -8,11 +8,11 @@ import { getWiki, getWikiPage, type WikiPageSummary } from '../../api/space-api'
 import { useLeadName } from '../../lib/space-lead'
 import { useSpaceContext } from '../../context/SpaceContext'
 import { useAsync } from '../../hooks/useAsync'
-import { spaceRoute } from '../../routes'
-import { CompanyEmpty, CompanyLoading } from '../_company-shell'
+import { brainRoute } from '../../routes'
+import { CompanyEmpty, CompanyError, CompanyLoading } from '../_company-shell'
 import { CompanyMarkdown } from './CompanyMarkdown'
 import { formatRelative } from './format'
-
+import { BrainPanelGuide } from './BrainPanelGuide'
 type WikiTab = 'browse' | 'index' | 'activity'
 
 function PageRow({
@@ -46,7 +46,7 @@ export function BrainWikiPanel() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [filter, setFilter] = useState('')
 
-  const snapshot = useAsync(() => getWiki(space.id).catch(() => null), [space.id])
+  const snapshot = useAsync(() => getWiki(space.id), [space.id])
   const pageDetail = useAsync(
     () =>
       selectedKey
@@ -78,18 +78,27 @@ export function BrainWikiPanel() {
     return <CompanyLoading label="Loading wiki…" />
   }
 
+  if (snapshot.error) {
+    return <CompanyError message={snapshot.error} onRetry={snapshot.reload} />
+  }
+
   if (!wiki?.initialized) {
     return (
-      <CompanyEmpty
-        description={`${leadName} builds interlinked pages on Drive at /wiki/ — entities, concepts, and sources. Compiled reuse truths live under Truths.`}
-        leadName={leadName}
-        title="No wiki yet"
-      />
+      <div className="DAO-brain-panel-stack">
+        <BrainPanelGuide area="wiki" />
+        <CompanyEmpty
+          description={`${leadName} creates linked wiki pages as you research. They appear here once the first page is saved.`}
+          leadName={leadName}
+          title="No wiki pages yet"
+        />
+      </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="DAO-brain-panel-stack">
+      <BrainPanelGuide area="wiki" />
+      <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <UtilChipSwitch aria-label="Wiki views">
           <UtilChipSwitchItem active={tab === 'browse'} onClick={() => setTab('browse')}>
@@ -107,7 +116,7 @@ export function BrainWikiPanel() {
         </UtilChipSwitch>
         <Link
           className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground no-underline hover:text-primary"
-          to={`${spaceRoute(space.slug, 'brain')}?view=drive&path=${encodeURIComponent('/wiki/')}`}
+          to={brainRoute(space.slug, { view: 'drive', path: '/wiki/' })}
         >
           <FolderOpen className="size-3.5" strokeWidth={1.6} />
           Open in Drive
@@ -213,6 +222,7 @@ export function BrainWikiPanel() {
           </main>
         </div>
       ) : null}
+      </div>
     </div>
   )
 }

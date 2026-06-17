@@ -8,7 +8,7 @@ from typing import Any
 from uuid import UUID
 
 from DAO.config import DAO_enabled
-from DAO.db import rls_connection
+from DAO.db import rls_connection, schedule_fire_and_forget
 from DAO.research_memory.hooks import capture_task
 from DAO.research_memory.service import ResearchMemoryService
 from DAO.runtime import get_runtime_context
@@ -123,13 +123,7 @@ def _result_summary(result: str) -> str:
 
 def _schedule(coro) -> None:
     try:
-        import asyncio
-
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            loop.create_task(coro)
-        else:
-            loop.run_until_complete(coro)
+        schedule_fire_and_forget(coro)
     except Exception as exc:
         _log.debug("DAO worker hook skipped: %s", exc)
 

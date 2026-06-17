@@ -1,0 +1,421 @@
+/* Home 6.0 — calm VOID density, 1440 content column */
+
+.DAO-home-scroll {
+  background: #000;
+}
+
+.DAO-home-canvas {
+  width: min(100%, 90rem);
+  margin-inline: auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.DAO-home-loading,
+.DAO-home-empty {
+  color: var(--text-secondary, #a3a3a3);
+  font-size: 0.875rem;
+}
+
+/* DNA strip */
+.DAO-home-dna {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 0.75rem;
+  background: rgb(255 255 255 / 3%);
+}
+
+.DAO-home-dna__label {
+  display: block;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-home-dna__value {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--text-primary, #fff);
+}
+
+/* Pulse + orb */
+.DAO-home-pulse {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.DAO-home-pulse .DAO-jarvis-orb {
+  width: 20rem;
+  height: 20rem;
+}
+
+.DAO-home-pulse[data-orb-tone='warning'] .DAO-jarvis-orb {
+  color: #f5a623;
+}
+
+.DAO-home-pulse[data-orb-tone='positive'] .DAO-jarvis-orb {
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-home-mode {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-home-mode__line strong {
+  color: var(--text-primary, #fff);
+}
+
+.DAO-home-mode__focus {
+  margin-top: 0.125rem;
+}
+
+/* Operating state */
+.DAO-home-state {
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 8%);
+  background: rgb(255 255 255 / 2%);
+}
+
+.DAO-home-state[data-tone='positive'] {
+  border-color: rgb(171 159 242 / 35%);
+}
+
+.DAO-home-state[data-tone='warning'] {
+  border-color: rgb(245 166 35 / 35%);
+}
+
+.DAO-home-state__label {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-home-state__subline {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+/* Sections */
+.DAO-home-section__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.DAO-home-section__title {
+  margin-top: 0.125rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+/* Focus */
+.DAO-home-focus {
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(171 159 242 / 30%);
+  background: rgb(171 159 242 / 6%);
+}
+
+.DAO-home-focus__context,
+.DAO-home-focus__recommendation {
+  font-size: 0.9375rem;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-home-focus__why {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+}
+
+.DAO-home-focus__why-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-home-focus__why-body {
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-home-focus__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.DAO-home-focus__also {
+  margin-top: 1rem;
+  padding-left: 1rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-home-focus__also-btn {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary, #ab9ff2);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.DAO-home-focus__also-btn:hover {
+  text-decoration: underline;
+}
+
+/* Signals */
+.DAO-home-signals {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: var(--text-primary, #fff);
+}
+
+/* Momentum */
+.DAO-home-momentum__score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.DAO-home-momentum__value {
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-home-momentum__delta {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-home-momentum__delta[data-direction='up'] {
+  color: #7dcea0;
+}
+
+.DAO-home-rings {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.DAO-home-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.DAO-home-ring__svg {
+  width: 3rem;
+  height: 3rem;
+  transform: rotate(-90deg);
+}
+
+.DAO-home-ring__track {
+  fill: none;
+  stroke: rgb(255 255 255 / 10%);
+  stroke-width: 3;
+}
+
+.DAO-home-ring__fill {
+  fill: none;
+  stroke: var(--primary, #ab9ff2);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.DAO-home-ring__label {
+  font-size: 0.6875rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-home-heatmap {
+  display: grid;
+  grid-template-columns: repeat(53, 1fr);
+  gap: 2px;
+}
+
+.DAO-home-heatmap__cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 6%);
+}
+
+.DAO-home-heatmap__cell[data-level='1'] {
+  background: rgb(171 159 242 / 20%);
+}
+
+.DAO-home-heatmap__cell[data-level='2'] {
+  background: rgb(171 159 242 / 35%);
+}
+
+.DAO-home-heatmap__cell[data-level='3'] {
+  background: rgb(171 159 242 / 55%);
+}
+
+.DAO-home-heatmap__cell[data-level='4'] {
+  background: rgb(171 159 242 / 80%);
+}
+
+/* Story feeds */
+.DAO-home-changed__item,
+.DAO-home-learned__card,
+.DAO-home-recommends__card {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
+}
+
+.DAO-home-changed__kind {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-home-changed__button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.DAO-home-changed__button:hover p {
+  color: var(--text-primary, #fff);
+}
+
+.DAO-home-story {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.DAO-home-story__phase {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-home-story__achievements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.DAO-home-story__achievements li {
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  background: rgb(255 255 255 / 6%);
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-home-story__milestones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.75rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+/* Ask DAO */
+.DAO-home-ask {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 4%);
+}
+
+.DAO-home-ask__icon {
+  color: var(--text-secondary, #a3a3a3);
+  flex-shrink: 0;
+}
+
+.DAO-home-ask__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary, #fff);
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.DAO-home-time-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.DAO-home-time-list__head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.DAO-home-time-list__rings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .DAO-home-pulse .DAO-jarvis-orb {
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .DAO-home-dna {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .DAO-home-rings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

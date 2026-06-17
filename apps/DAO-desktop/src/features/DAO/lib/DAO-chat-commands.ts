@@ -43,18 +43,19 @@ export const DAO_CHAT_COMMANDS: readonly DAOChatCommand[] = [
   },
   {
     name: '/reports',
-    description: 'Open Brain — briefings and Drive artifacts',
+    description: 'Open Memory — briefings and Drive artifacts',
     aliases: ['/artifacts'],
     navigate: 'reports',
   },
   {
     name: '/drive',
-    description: 'Open Brain — company Drive files',
+    description: 'Open Memory — company Drive files',
     navigate: 'drive',
   },
   {
     name: '/command',
-    description: 'Open Org — live floor and activity',
+    description: 'Open Work — live operations and activity',
+    aliases: ['/floor'],
     navigate: 'command',
   },
   {

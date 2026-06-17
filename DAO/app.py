@@ -18,17 +18,20 @@ from DAO.spaces.router import router as spaces_router
 from DAO.drive.router import router as drive_router
 from DAO.org.router import router as org_router
 from DAO.jarvis.router import router as jarvis_router
+from DAO.jarvis.home_router import router as home_router
 from DAO.comms.router import router as comms_router
 from DAO.hitl.router import router as hitl_router
 from DAO.hitl.gate import register_hitl_gate
 from DAO.canvas.router import router as canvas_router
 from DAO.council.router import router as council_router
-from DAO.brain.router import router as brain_router
 from DAO.skills.router import router as skills_router
 from DAO.tools.router import router as tools_router
 from DAO.enclave.router import router as enclave_router
 from DAO.hermes.router import router as hermes_router
 from DAO.research_memory.router import router as research_memory_router
+from DAO.objects.router import router as objects_router
+from DAO.work.router import router as work_router
+from DAO.memory.router import router as memory_router
 from DAO.wiki.router import router as wiki_router
 
 _log = logging.getLogger(__name__)
@@ -73,16 +76,19 @@ def mount_DAO(app: FastAPI) -> None:
     app.include_router(research_memory_router, prefix=prefix)
     app.include_router(org_router, prefix=prefix)
     app.include_router(jarvis_router, prefix=prefix)
+    app.include_router(home_router, prefix=prefix)
     app.include_router(comms_router, prefix=prefix)
     app.include_router(hitl_router, prefix=prefix)
     app.include_router(canvas_router, prefix=prefix)
     app.include_router(council_router, prefix=prefix)
-    app.include_router(brain_router, prefix=prefix)
     app.include_router(skills_router, prefix=prefix)
     app.include_router(tools_router, prefix=prefix)
     app.include_router(enclave_router, prefix=prefix)
     app.include_router(hermes_router, prefix=prefix)
     app.include_router(wiki_router, prefix=prefix)
+    app.include_router(objects_router, prefix=prefix)
+    app.include_router(work_router, prefix=prefix)
+    app.include_router(memory_router, prefix=prefix)
 
     register_hitl_gate()
     _log.info("DAO routes mounted at %s", prefix)

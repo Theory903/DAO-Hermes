@@ -1,143 +1,183 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { NEW_CHAT_ROUTE } from '@/app/routes'
-import { Button } from '@/components/ui/button'
-import { Codicon } from '@/components/ui/codicon'
+import { requestComposerFocus, requestComposerInsert } from '@/app/chat/composer/focus'
 
-import { getBriefingLatest, getSpaceReports, triggerBriefing } from '../api/space-api'
-import { PulsePills, type PulsePill } from '../components/voice/PulsePills'
-import { VoiceConsole } from '../components/voice/VoiceConsole'
+import { approveFocus, ignoreFocus } from '../api/space-api'
+import type { FocusCard } from '../api/types'
+import { spaceRoute } from '../routes'
+import { AskDaoBar } from '../components/home/AskDaoBar'
+import { ChangedFeed } from '../components/home/ChangedFeed'
+import { ObjectDetailSheet } from '../components/objects/ObjectDetailSheet'
+import { CompanyDnaStrip } from '../components/home/CompanyDnaStrip'
+import { CompanyPulseSection } from '../components/home/CompanyPulseSection'
+import { CompanyStorySection } from '../components/home/CompanyStory'
+import { FocusNowSection } from '../components/home/FocusNowSection'
+import { LearnedCards } from '../components/home/LearnedCards'
+import { MomentumSection } from '../components/home/MomentumSection'
+import { OperatingStateBlock } from '../components/home/OperatingStateBlock'
+import { RecommendsCards } from '../components/home/RecommendsCards'
+import { WinningSignals } from '../components/home/WinningSignals'
 import { useSpaceContext } from '../context/SpaceContext'
-import { useAsync } from '../hooks/useAsync'
-import { useSpaceGreeting } from '../hooks/useSpaceGreeting'
+import { useHomeBundle } from '../hooks/useHomeBundle'
+import { useLeadName } from '../lib/space-lead'
+import { resolveSpaceGreeting } from '../lib/space-greeting'
 import { useVoiceSession } from '../hooks/useVoiceSession'
 import { useWakeWord } from '../hooks/useWakeWord'
-import { useLeadName } from '../lib/space-lead'
-import { spaceRoute } from '../routes'
 import {
-  CompanyEmpty,
   CompanyError,
   CompanyScroll,
   DAOCompanyShell,
 } from './_company-shell'
-import { BriefingCard, BriefingCardSkeleton } from './BriefingCard'
+
+import '../styles/DAO-home.css'
 
 export function HomeScreen() {
   const space = useSpaceContext()
   const navigate = useNavigate()
-  const [triggering, setTriggering] = useState(false)
-
-  const briefing = useAsync(() => getBriefingLatest(space.id), [space.id])
-  const reports = useAsync(() => getSpaceReports(space.id).catch(() => null), [space.id])
+  const home = useHomeBundle(space.id)
   const leadName = useLeadName()
-  const greeting = useSpaceGreeting(space.id, leadName, briefing.data)
   const voice = useVoiceSession({ spaceId: space.id, leadName })
+  const [focusBusy, setFocusBusy] = useState(false)
+  const [dismissedFocusId, setDismissedFocusId] = useState<string | null>(null)
+  const [detailObjectId, setDetailObjectId] = useState<string | null>(null)
 
-  // Hands-free wake word ("Jarvis"): when heard while idle, open a voice turn.
-  // Paused while the session already owns the mic so it can't self-trigger.
   const wake = useWakeWord(() => {
     if (!voice.active) voice.toggle()
   }, voice.active)
   const wakeHint = wake.status === 'listening' && wake.keyword ? `Say “${wake.keyword}”` : null
 
-  // Greet once with the headline only — never read sublines or the briefing body.
+  const greeting = useMemo(
+    () =>
+      resolveSpaceGreeting({
+        spaceId: space.id,
+        leadName,
+        briefingGreeting: home.data?.pulse?.greeting,
+        briefingSubline: home.data?.pulse?.greeting_subline,
+      }),
+    [home.data?.pulse?.greeting, home.data?.pulse?.greeting_subline, leadName, space.id],
+  )
+
   useEffect(() => {
     if (!greeting.headline) return
     voice.greet(greeting.headline)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [greeting.headline])
 
-  const pulse = reports.data?.pulse
-  const pills: PulsePill[] = pulse
-    ? [
-        {
-          value: pulse.pending_hitl,
-          label: 'approvals',
-          alert: pulse.pending_hitl > 0,
-          onClick: () => navigate(spaceRoute(space.slug, 'inbox')),
-        },
-        {
-          value: pulse.handoffs_24h,
-          label: 'handoffs',
-          onClick: () => navigate(spaceRoute(space.slug, 'command')),
-        },
-        {
-          value: pulse.drive_artifacts_24h,
-          label: 'drive · 24h',
-          onClick: () => navigate(spaceRoute(space.slug, 'drive')),
-        },
-        {
-          value: pulse.brain_entities,
-          label: 'brain',
-          onClick: () => navigate(spaceRoute(space.slug, 'brain')),
-        },
-      ]
-    : []
+  const focus =
+    home.data?.focus_now && home.data.focus_now.id !== dismissedFocusId
+      ? home.data.focus_now
+      : null
 
-  const mission = (space.ai_lead_config?.mission as string | undefined)?.trim()
+  const alsoAttention =
+    home.data?.also_attention.filter((card) => card.id !== dismissedFocusId) ?? []
 
-  async function refreshBriefing() {
-    setTriggering(true)
+  function openChatWithPrefill(text: string) {
+    requestComposerInsert(text)
+    requestComposerFocus('main')
+    navigate(NEW_CHAT_ROUTE)
+  }
+
+  async function handleApprove(card: FocusCard) {
+    if (card.kind !== 'hitl') return
+    setFocusBusy(true)
+    setDismissedFocusId(card.id)
     try {
-      await triggerBriefing(space.id)
-      briefing.reload()
+      await approveFocus(space.id, card.id)
+      home.reload()
+    } catch {
+      setDismissedFocusId(null)
     } finally {
-      setTriggering(false)
+      setFocusBusy(false)
     }
+  }
+
+  async function handleIgnore(card: FocusCard) {
+    if (card.kind !== 'hitl') return
+    setFocusBusy(true)
+    setDismissedFocusId(card.id)
+    try {
+      await ignoreFocus(space.id, card.id)
+      home.reload()
+    } catch {
+      setDismissedFocusId(null)
+    } finally {
+      setFocusBusy(false)
+    }
+  }
+
+  function handleDiscuss(card: FocusCard) {
+    openChatWithPrefill(card.context)
+  }
+
+  function handleOpenInbox(card: FocusCard) {
+    navigate(`${spaceRoute(space.slug, 'inbox')}?id=${encodeURIComponent(card.id)}`)
+  }
+
+  function handleOpenObject(objectId: string) {
+    setDetailObjectId(objectId)
   }
 
   return (
     <DAOCompanyShell title={space.name}>
-      <CompanyScroll className="DAO-space-home-scroll">
-        <section className="flex flex-col items-center gap-4">
-          <VoiceConsole
-            greeting={greeting}
-            leadName={leadName}
-            onOpenChat={() => navigate(NEW_CHAT_ROUTE)}
-            session={voice}
-            wakeHint={wakeHint}
-          />
+      <CompanyScroll className="DAO-home-scroll">
+        {home.loading ? (
+          <p className="DAO-home-loading">Loading company state…</p>
+        ) : home.error ? (
+          <CompanyError message={home.error} onRetry={home.reload} />
+        ) : home.data ? (
+          <div className="DAO-home-canvas">
+            <CompanyDnaStrip dna={home.data.dna} />
 
-          {pills.length > 0 ? <PulsePills pills={pills} /> : null}
+            <CompanyPulseSection
+              greeting={greeting}
+              leadName={leadName}
+              onOpenChat={() => navigate(NEW_CHAT_ROUTE)}
+              operatingMode={home.data.operating_mode}
+              orbTone={home.data.operating_state.tone}
+              session={voice}
+              wakeHint={wakeHint}
+            />
 
-          {mission ? (
-            <p className="max-w-md text-center text-sm text-(--text-secondary,#a3a3a3)">
-              Mission: <span className="text-(--text-primary,#fff)">{mission}</span>
-            </p>
-          ) : null}
-        </section>
+            <OperatingStateBlock state={home.data.operating_state} />
 
-        <section className="DAO-space-home-briefing">
-          <div className="DAO-space-home-briefing-head">
-            <div>
-              <h2 className="DAO-util-section-label">Today</h2>
-              <p className="DAO-space-home-section-title">Today&apos;s briefing</p>
-            </div>
-            <Button disabled={triggering} onClick={() => void refreshBriefing()} size="sm" type="button" variant="ghost">
-              <Codicon name="refresh" size="0.875rem" spinning={triggering} />
-              {triggering ? 'Refreshing…' : 'Refresh'}
-            </Button>
+            <FocusNowSection
+              alsoAttention={alsoAttention}
+              busy={focusBusy}
+              focus={focus}
+              onApprove={(card) => void handleApprove(card)}
+              onDiscuss={handleDiscuss}
+              onIgnore={(card) => void handleIgnore(card)}
+              onOpenInbox={handleOpenInbox}
+              onOpenObject={handleOpenObject}
+              spaceId={space.id}
+            />
+
+            <WinningSignals lines={home.data.winning_signals} />
+
+            <MomentumSection
+              heatmap={home.data.momentum.heatmap}
+              rings={home.data.momentum.rings}
+              score={home.data.momentum.score}
+              scoreDeltaWeek={home.data.momentum.score_delta_week}
+              timeMachine={home.data.momentum.time_machine}
+            />
+
+            <ChangedFeed items={home.data.changed} onOpenObject={setDetailObjectId} />
+            <LearnedCards items={home.data.learned} />
+            <RecommendsCards items={home.data.recommends} />
+            <CompanyStorySection story={home.data.story} />
+
+            <AskDaoBar onSubmit={openChatWithPrefill} />
           </div>
-          {briefing.loading ? (
-            <BriefingCardSkeleton />
-          ) : briefing.error ? (
-            <CompanyError message={briefing.error} onRetry={briefing.reload} />
-          ) : briefing.data?.markdown ? (
-            <BriefingCard
-              generatedAt={briefing.data.generated_at}
-              leadName={leadName}
-              markdown={briefing.data.markdown}
-            />
-          ) : (
-            <CompanyEmpty
-              description={`${leadName} compiles one each morning.`}
-              leadName={leadName}
-              title="No briefing yet"
-            />
-          )}
-        </section>
+        ) : null}
       </CompanyScroll>
+      <ObjectDetailSheet
+        spaceId={space.id}
+        objectId={detailObjectId}
+        onOpenChange={(open) => !open && setDetailObjectId(null)}
+      />
     </DAOCompanyShell>
   )
 }

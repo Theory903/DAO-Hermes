@@ -14,6 +14,7 @@ import { CompanyEmpty, CompanyError } from '../_company-shell'
 import { BriefingCardSkeleton } from '../BriefingCard'
 import { BriefingHistoryEntry } from '../BriefingHistoryEntry'
 import { WritebackRow } from '../WritebackRow'
+import { BrainPanelGuide } from './BrainPanelGuide'
 
 type ReportsTab = 'overview' | 'briefings' | 'writebacks'
 
@@ -50,7 +51,9 @@ export function BrainReportsPanel() {
   }
 
   return (
-    <div className="DAO-reports-stack">
+    <div className="DAO-brain-panel-stack">
+      <BrainPanelGuide area="reports" />
+      <div className="DAO-reports-stack">
       <UtilChipSwitch aria-label="Reports views">
         <UtilChipSwitchItem active={tab === 'overview'} onClick={() => setTab('overview')}>
           Overview
@@ -58,12 +61,8 @@ export function BrainReportsPanel() {
         <UtilChipSwitchItem active={tab === 'briefings'} count={briefings.length} onClick={() => setTab('briefings')}>
           Briefings
         </UtilChipSwitchItem>
-        <UtilChipSwitchItem
-          active={tab === 'writebacks'}
-          count={writebacks.length}
-          onClick={() => setTab('writebacks')}
-        >
-          Writebacks
+        <UtilChipSwitchItem active={tab === 'writebacks'} count={writebacks.length} onClick={() => setTab('writebacks')}>
+          Agent outputs
         </UtilChipSwitchItem>
       </UtilChipSwitch>
 
@@ -105,7 +104,7 @@ export function BrainReportsPanel() {
             </div>
             <div className="DAO-company-stat">
               <span className="DAO-company-stat-value">{pulse.brain_entities}</span>
-              <span className="DAO-company-stat-label">truths</span>
+              <span className="DAO-company-stat-label">saved facts</span>
             </div>
           </div>
         </section>
@@ -163,18 +162,18 @@ export function BrainReportsPanel() {
           <div className="DAO-company-card-head">
             <FolderOutput className="size-4" strokeWidth={1.6} />
             <div>
-              <h2 className="DAO-company-card-title">Writebacks</h2>
+              <h2 className="DAO-company-card-title">Agent outputs</h2>
               <p className="DAO-company-card-sub">
                 {writebacks.length === 0
-                  ? 'Tool outputs persisted to Drive'
-                  : `${writebacks.length} recent artifacts`}
+                  ? 'Files agents saved after completing tasks'
+                  : `${writebacks.length} recent files`}
               </p>
             </div>
           </div>
           {writebacks.length === 0 ? (
             <CompanyEmpty
-              description="Worker tool outputs land in Drive under /writeback/ after each task."
-              title="No writebacks"
+              description="When agents finish tool work, they save files to Drive (often under /writeback/)."
+              title="No agent outputs yet"
             />
           ) : (
             <ul className="DAO-reports-writeback-list">
@@ -185,6 +184,7 @@ export function BrainReportsPanel() {
           )}
         </section>
       ) : null}
+      </div>
     </div>
   )
 }

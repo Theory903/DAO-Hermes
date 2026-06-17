@@ -1,7 +1,7 @@
 import type { NavigateFunction } from 'react-router-dom'
 
 import type { DAOChatScreen } from './DAO-chat-commands'
-import { spaceRoute } from '../routes'
+import { spaceRoute, brainRoute } from '../routes'
 
 let navigateFn: NavigateFunction | null = null
 let slugFn: (() => string | null) | null = null
@@ -28,12 +28,12 @@ export function DAOSlashNavigate(screen: DAOChatScreen): boolean {
   }
 
   if (screen === 'reports' || screen === 'drive') {
-    navigateFn(`${spaceRoute(slug, 'brain')}?view=${screen}`)
+    navigateFn(brainRoute(slug, { view: screen }))
     return true
   }
 
   if (screen === 'command') {
-    navigateFn(spaceRoute(slug, 'org'))
+    navigateFn(spaceRoute(slug, 'work') + '?view=operations')
     return true
   }
 

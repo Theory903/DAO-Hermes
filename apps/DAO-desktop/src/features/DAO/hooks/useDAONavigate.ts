@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { spaceEventsUrl } from '../api/space-api'
-import { spaceRoute } from '../routes'
+import { spaceRoute, brainRoute } from '../routes'
 
 type NavigatePayload = {
   screen?: string
@@ -38,16 +38,25 @@ export function useDAONavigate(spaceId: string | null, slug: string | null) {
             return
           }
 
-          if (screen === 'wiki' || screen === 'reports' || screen === 'drive') {
-            const params = new URLSearchParams({ view: screen })
-            if (payload.hitl_id) params.set('hitl', payload.hitl_id)
-            if (payload.drive_path) params.set('path', payload.drive_path)
-            navigate(`${spaceRoute(slug, 'brain')}?${params.toString()}`)
+          if (screen === 'wiki' || screen === 'reports' || screen === 'drive' || screen === 'brain' || screen === 'memory') {
+            const view =
+              screen === 'brain' ? 'truths' : screen === 'memory' ? 'search' : screen
+            navigate(
+              brainRoute(slug, {
+                view: view as 'wiki' | 'reports' | 'drive' | 'truths',
+                path: payload.drive_path,
+              }),
+            )
             return
           }
 
           if (screen === 'command') {
-            navigate(spaceRoute(slug, 'org'))
+            navigate(`${spaceRoute(slug, 'work')}?view=operations`)
+            return
+          }
+
+          if (screen === 'org') {
+            navigate(`${spaceRoute(slug, 'control')}?section=organization`)
             return
           }
 

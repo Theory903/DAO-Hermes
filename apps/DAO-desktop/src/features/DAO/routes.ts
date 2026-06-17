@@ -12,6 +12,10 @@ export type DAOScreenKey =
   | 'settings'
   | 'brain'
   | 'org'
+  | 'memory'
+  | 'work'
+  | 'automation'
+  | 'control'
 
 export const DAO_SCREEN_KEYS = [
   '',
@@ -23,11 +27,42 @@ export const DAO_SCREEN_KEYS = [
   'settings',
   'brain',
   'org',
+  'memory',
+  'work',
+  'automation',
+  'control',
 ] as const
 
 export function spaceRoute(slug: string, sub: DAOScreenKey | string = ''): string {
   const segment = sub ? `/${sub}` : ''
   return `${DAO_SPACE_PREFIX}/${encodeURIComponent(slug)}${segment}`
+}
+
+export type BrainViewParam = 'overview' | 'truths' | 'wiki' | 'drive' | 'reports'
+
+/** Deep link into Memory tabs (and optional Drive folder). */
+export function brainRoute(
+  slug: string,
+  options?: { view?: Exclude<BrainViewParam, 'overview'>; path?: string },
+): string {
+  const base = spaceRoute(slug, 'memory')
+  const params = new URLSearchParams()
+  if (options?.view) params.set('view', options.view)
+  if (options?.path) params.set('path', options.path)
+  const qs = params.toString()
+  return qs ? `${base}?${qs}` : base
+}
+
+/** @deprecated Use brainRoute — kept for slash-nav compatibility. */
+export const memoryRoute = brainRoute
+
+/** Deep link into Work or Memory object sheet. */
+export function objectLensRoute(
+  slug: string,
+  lens: 'work' | 'memory',
+  objectId: string,
+): string {
+  return `${spaceRoute(slug, lens)}?object=${encodeURIComponent(objectId)}`
 }
 
 export function isDAOSpaceRoute(pathname: string): boolean {

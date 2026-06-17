@@ -5,11 +5,15 @@ import { UtilSideNavItem } from '@/app/util-page-nav'
 import { cn } from '@/lib/utils'
 
 import { getBrainEntity, listBrainEntities, type BrainEntitySummary } from '../../api/space-api'
+import { useLeadName } from '../../lib/space-lead'
 import { useSpaceContext } from '../../context/SpaceContext'
 import { useAsync } from '../../hooks/useAsync'
 import { CompanyEmpty, CompanyError, CompanyLoading } from '../_company-shell'
 import { CompanyMarkdown } from './CompanyMarkdown'
 import { formatRelative } from './format'
+import { BRAIN_EMPTY } from './brain-copy'
+import { BrainPanelGuide } from './BrainPanelGuide'
+import { ObjectPrimitives } from '../../components/objects/ObjectPrimitives'
 
 function formatConfidence(value?: number): string {
   if (value == null) return '—'
@@ -35,13 +39,11 @@ function ConfidenceBar({ value }: { value?: number }) {
 
 export function BrainTruthsPanel() {
   const space = useSpaceContext()
+  const leadName = useLeadName()
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
   const [filter, setFilter] = useState('')
   const [copied, setCopied] = useState(false)
-  const entities = useAsync(
-    () => listBrainEntities(space.id).catch(() => ({ entities: [] })),
-    [space.id],
-  )
+  const entities = useAsync(() => listBrainEntities(space.id), [space.id])
   const list = entities.data?.entities ?? []
 
   const sorted = useMemo(
@@ -79,23 +81,34 @@ export function BrainTruthsPanel() {
   }
 
   if (entities.loading) {
-    return <CompanyLoading label="Loading truths…" />
+    return <CompanyLoading label="Loading saved facts…" />
+  }
+
+  if (entities.error) {
+    return <CompanyError message={entities.error} onRetry={entities.reload} />
   }
 
   if (list.length === 0) {
     return (
-      <CompanyEmpty
-        description="Durable facts are stored via DAO_store_knowledge and appear here for never-do-twice reuse."
-        title="No compiled truths yet"
-      />
+      <div className="DAO-brain-panel-stack">
+        <BrainPanelGuide area="truths" />
+        <CompanyEmpty
+          description={BRAIN_EMPTY.description(leadName)}
+          leadName={leadName}
+          steps={[BRAIN_EMPTY.steps(leadName)[0]]}
+          title="No saved facts yet"
+        />
+      </div>
     )
   }
 
   return (
-    <div className="DAO-company-split-layout DAO-util-page-content--tight h-full min-h-0">
-      <aside aria-label="Compiled truths" className="DAO-company-split-sidebar">
+    <div className="DAO-brain-panel-stack">
+      <BrainPanelGuide area="truths" />
+      <div className="DAO-company-split-layout DAO-util-page-content--tight h-full min-h-0">
+      <aside aria-label="Saved facts" className="DAO-company-split-sidebar">
         <div className="DAO-company-split-sidebar-head">
-          <p className="DAO-company-split-sidebar-label">Truths</p>
+          <p className="DAO-company-split-sidebar-label">Facts</p>
           <p className="DAO-company-split-sidebar-meta">
             {filter.trim() ? `${filtered.length} of ${list.length}` : `${list.length} total`}
           </p>
@@ -105,7 +118,7 @@ export function BrainTruthsPanel() {
           <input
             className="w-full rounded-md border border-border/60 bg-background/40 py-2 pl-8 pr-3 text-sm outline-none focus:border-primary/40"
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter truths…"
+            placeholder="Search facts…"
             type="search"
             value={filter}
           />
@@ -114,7 +127,7 @@ export function BrainTruthsPanel() {
           {entities.error ? (
             <CompanyError message={entities.error} onRetry={entities.reload} />
           ) : filtered.length === 0 ? (
-            <p className="px-2 text-sm text-muted-foreground">No truths match.</p>
+            <p className="px-2 text-sm text-muted-foreground">No facts match your search.</p>
           ) : (
             filtered.map((entity) => (
               <UtilSideNavItem
@@ -144,8 +157,8 @@ export function BrainTruthsPanel() {
         <div className="DAO-company-split-detail DAO-util-scrollbar">
           {!active ? (
             <CompanyEmpty
-              description="Select a truth to read compiled markdown."
-              title="Pick a truth"
+              description="Choose a fact from the list to read the full summary."
+              title="Select a fact"
             />
           ) : detail.loading ? (
             <CompanyLoading label="Loading truth…" />
@@ -191,7 +204,7 @@ export function BrainTruthsPanel() {
               ) : null}
 
               <section>
-                <h3 className="DAO-util-section-label">Compiled truth</h3>
+                <h3 className="DAO-util-section-label">Summary</h3>
                 {detail.data.compiled_truth ? (
                   <CompanyMarkdown content={detail.data.compiled_truth} />
                 ) : (
@@ -203,7 +216,7 @@ export function BrainTruthsPanel() {
 
               {detail.data.drive_refs?.length ? (
                 <section>
-                  <h3 className="DAO-util-section-label">Drive references</h3>
+                  <h3 className="DAO-util-section-label">Related files</h3>
                   <div className="DAO-brain-chip-row">
                     {detail.data.drive_refs.map((ref) => (
                       <span className="DAO-brain-chip" key={ref}>
@@ -211,6 +224,18 @@ export function BrainTruthsPanel() {
                       </span>
                     ))}
                   </div>
+                </section>
+              ) : null}
+
+              {detail.data.id ? (
+                <section>
+                  <h3 className="DAO-util-section-label">Company memory</h3>
+                  <ObjectPrimitives
+                    missingLabel="Run backfill or wait for Dream Cycle to link this fact."
+                    sourceId={detail.data.id}
+                    sourceTable="brain_entities"
+                    spaceId={space.id}
+                  />
                 </section>
               ) : null}
             </article>
@@ -222,6 +247,7 @@ export function BrainTruthsPanel() {
           )}
         </div>
       </main>
+      </div>
     </div>
   )
 }

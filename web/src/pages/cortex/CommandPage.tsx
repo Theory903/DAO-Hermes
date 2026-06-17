@@ -35,6 +35,10 @@ type Snapshot = {
   }>;
 };
 
+type WorkBundle = {
+  floor: Snapshot;
+};
+
 export default function CommandPage() {
   const { setEnd } = usePageHeader();
   const spaceId = getDAOSpaceId();
@@ -47,7 +51,9 @@ export default function CommandPage() {
 
   useEffect(() => {
     if (!spaceId) return;
-    DAOFetch<Snapshot>(spaceApiPath(spaceId, "/command/snapshot")).then(setSnap);
+    DAOFetch<WorkBundle>(spaceApiPath(spaceId, "/work/bundle")).then((bundle) =>
+      setSnap(bundle.floor),
+    );
   }, [spaceId]);
 
   useEffect(() => {
@@ -62,8 +68,8 @@ export default function CommandPage() {
     const es = new EventSource(url);
     es.onmessage = (ev) => {
       setEvents((prev) => [ev.data, ...prev].slice(0, 20));
-      void DAOFetch<Snapshot>(spaceApiPath(spaceId, "/command/snapshot")).then(
-        setSnap,
+      void DAOFetch<WorkBundle>(spaceApiPath(spaceId, "/work/bundle")).then((bundle) =>
+        setSnap(bundle.floor),
       );
     };
     return () => es.close();

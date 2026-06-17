@@ -120,3 +120,26 @@ def run_sync(coro):
         return future.result(timeout=120)
 
     return asyncio.run(coro)
+
+
+def schedule_fire_and_forget(coro) -> None:
+    """Schedule a coroutine on the API pool loop from sync Hermes tool callbacks."""
+    import asyncio
+
+    pool_loop = _pool_loop
+    if pool_loop is not None and pool_loop.is_running():
+        try:
+            current = asyncio.get_running_loop()
+        except RuntimeError:
+            current = None
+        if current is pool_loop:
+            pool_loop.create_task(coro)
+            return
+        asyncio.run_coroutine_threadsafe(coro, pool_loop)
+        return
+
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(coro)
+    except RuntimeError:
+        asyncio.run(coro)

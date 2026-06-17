@@ -1,0 +1,36 @@
+{
+  "dna": {
+    "mission": "Build the OS for autonomous companies",
+    "stage": "Launch",
+    "north_star": "90% Autonomous Operations",
+    "archetype": "Builder"
+  },
+  "pulse": {
+    "pending_hitl": 0,
+    "handoffs_24h": 0,
+    "drive_artifacts_24h": 0,
+    "brain_entities": 0
+  },
+  "operating_mode": { "mode": "learning", "focus_label": "Compounding knowledge", "confidence": 0.5 },
+  "operating_state": { "label": "Steady", "tone": "neutral" },
+  "focus_now": null,
+  "also_attention": [],
+  "winning_signals": ["Clear runway — pick one outcome and let departments execute."],
+  "momentum": {
+    "score": 25,
+    "score_delta_week": null,
+    "rings": { "growth": 0, "execution": 0, "learning": 0, "autonomy": 1 },
+    "heatmap": [],
+    "time_machine": { "points": [] }
+  },
+  "changed": [],
+  "learned": [{ "title": "Getting started", "body": "First wins will show here." }],
+  "recommends": [],
+  "story": {
+    "started": "Started Acme.",
+    "are": "Setting up the operating system.",
+    "going": "Clearing decisions so agents can run.",
+    "achievements": []
+  },
+  "generated_at": "2026-06-17T00:00:00+00:00"
+}

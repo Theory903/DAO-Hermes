@@ -118,6 +118,17 @@ if (USER_DATA_OVERRIDE) {
 }
 
 const DEV_SERVER = process.env.HERMES_DESKTOP_DEV_SERVER
+// DAO dev-desktop.sh starts the API sidecar on :9119; Electron must attach via
+// remote mode instead of spawning a second local dashboard. Parent-shell exports
+// can be dropped by npm/concurrently on some setups — pin defaults here.
+if (DEV_SERVER && !process.env.HERMES_DESKTOP_REMOTE_URL) {
+  const port = String(process.env.DAO_API_PORT || '9119').trim() || '9119'
+  process.env.HERMES_DESKTOP_REMOTE_URL = `http://127.0.0.1:${port}`
+}
+if (DEV_SERVER && process.env.HERMES_DESKTOP_REMOTE_URL && !process.env.HERMES_DESKTOP_REMOTE_TOKEN) {
+  process.env.HERMES_DESKTOP_REMOTE_TOKEN =
+    process.env.HERMES_DASHBOARD_SESSION_TOKEN || 'dev-DAO-desktop'
+}
 const IS_PACKAGED = app.isPackaged
 const IS_MAC = process.platform === 'darwin'
 const IS_WINDOWS = process.platform === 'win32'

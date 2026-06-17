@@ -10,11 +10,12 @@ import { DAOAppOverlays } from "./shell/DAOAppOverlays";
 import { DAOBootScreen } from "./shell/DAOBootScreen";
 import { DAOSpaceLayout } from "./shell/DAOShell";
 import { HomeScreen } from "./screens/HomeScreen";
-import { SettingsScreen } from "./screens/SettingsScreen";
-import { BrainScreen } from "./screens/BrainScreen";
+import { ControlScreen } from "./screens/ControlScreen";
+import { AutomationScreen } from "./screens/AutomationScreen";
+import { MemoryScreen } from "./screens/MemoryScreen";
+import { WorkScreen } from "./screens/WorkScreen";
 import { InboxScreen } from "./screens/InboxScreen";
-import { OrgScreen } from "./screens/OrgScreen";
-import { BrainReportsRedirect } from "./screens/ReportsScreen";
+import { MemoryReportsRedirect } from "./screens/ReportsScreen";
 
 const HermesChat = lazy(() =>
   import("@/app/desktop-controller").then((mod) => ({ default: mod.DesktopController })),
@@ -24,11 +25,46 @@ function ChatFallback() {
   return <DAOBootScreen />;
 }
 
-/** Legacy /command route → merged Org screen (floor view). */
+/** Legacy /command → Work operations lens. */
 function CommandRedirect() {
   const { slug } = useParams<{ slug: string }>();
   if (!slug) return <Navigate replace to="/" />;
-  return <Navigate replace to={spaceRoute(slug, "org")} />;
+  return <Navigate replace to={`${spaceRoute(slug, "work")}?view=operations`} />;
+}
+
+/** Legacy /org → Control organization section. */
+function OrgRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  if (!slug) return <Navigate replace to="/" />;
+  return <Navigate replace to={`${spaceRoute(slug, "control")}?section=organization`} />;
+}
+
+/** Legacy /brain → Memory lens. */
+function BrainRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  if (!slug) return <Navigate replace to="/" />;
+  return <Navigate replace to={spaceRoute(slug, "memory")} />;
+}
+
+/** Legacy /settings → Control lens. */
+function SettingsRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  if (!slug) return <Navigate replace to="/" />;
+  return <Navigate replace to={spaceRoute(slug, "control")} />;
+}
+
+/** Deep link /work/:objectId → query param on Work lens. */
+function WorkObjectRedirect() {
+  const { slug, objectId } = useParams<{ slug: string; objectId: string }>();
+  if (!slug || !objectId) return <Navigate replace to="/" />;
+  return <Navigate replace to={`${spaceRoute(slug, "work")}?object=${encodeURIComponent(objectId)}`} />;
+}
+
+/** Deep link /memory/:objectId → query param on Memory lens. */
+function MemoryObjectRedirect() {
+  const { slug, objectId } = useParams<{ slug: string; objectId: string }>();
+  if (!slug || !objectId) return <Navigate replace to="/" />;
+  return <Navigate replace to={`${spaceRoute(slug, "memory")}?object=${encodeURIComponent(objectId)}`} />;
 }
 
 export function DAOAppRoutes() {
@@ -42,13 +78,19 @@ export function DAOAppRoutes() {
         <Route index element={<HomeScreen />} />
         <Route path="chat" element={<Navigate replace to="/" />} />
         <Route path="command" element={<CommandRedirect />} />
-        <Route path="brain" element={<BrainScreen />} />
-        <Route path="org" element={<OrgScreen />} />
+        <Route path="brain" element={<BrainRedirect />} />
+        <Route path="memory" element={<MemoryScreen />} />
+        <Route path="memory/:objectId" element={<MemoryObjectRedirect />} />
+        <Route path="work" element={<WorkScreen />} />
+        <Route path="work/:objectId" element={<WorkObjectRedirect />} />
+        <Route path="automation" element={<AutomationScreen />} />
+        <Route path="control" element={<ControlScreen />} />
+        <Route path="org" element={<OrgRedirect />} />
         <Route path="inbox" element={<InboxScreen />} />
-        <Route path="reports" element={<BrainReportsRedirect />} />
-        <Route path="wiki" element={<BrainReportsRedirect view="wiki" />} />
-        <Route path="drive" element={<BrainReportsRedirect view="drive" />} />
-        <Route path="settings" element={<SettingsScreen />} />
+        <Route path="reports" element={<MemoryReportsRedirect />} />
+        <Route path="wiki" element={<MemoryReportsRedirect view="wiki" />} />
+        <Route path="drive" element={<MemoryReportsRedirect view="drive" />} />
+        <Route path="settings" element={<SettingsRedirect />} />
       </Route>
 
       <Route

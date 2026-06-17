@@ -5,6 +5,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from DAO.brain.service import maybe_sync_brain_from_drive_write
+from DAO.objects.ingest import ingest_drive_object
 from DAO.drive.folders import ensure_folder_paths
 from DAO.drive.storage import store_blob
 
@@ -46,5 +47,12 @@ async def store_text_object(
         object_id=oid,
         title_hint=brain_title,
         confidence=brain_confidence,
+    )
+    await ingest_drive_object(
+        conn,
+        space_id,
+        drive_object_id=oid,
+        path=path,
+        produced_by_dept=produced_by_dept,
     )
     return oid

@@ -1,4 +1,4 @@
-import { spaceRoute } from '@/features/DAO/routes'
+import { brainRoute } from '@/features/DAO/routes'
 
 /** Matches `.void-chat-topbar` / `.DAO-topbar` block in the VOID chat shell. */
 export const VOID_CHAT_TOPBAR_INSET_PX = 52
@@ -17,5 +17,5 @@ export function DAODriveRoute(slug: string | null | undefined): string {
     return '/'
   }
 
-  return spaceRoute(slug, 'drive')
+  return brainRoute(slug, { view: 'drive' })
 }

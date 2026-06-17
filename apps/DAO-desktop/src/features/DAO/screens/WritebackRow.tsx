@@ -2,12 +2,19 @@ import { FileOutput } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { formatRelativeTime } from "./BriefingCard";
-import { spaceRoute } from "../routes";
+import { brainRoute } from "../routes";
 import type { WritebackItem } from "../api/space-api";
 
 function fileName(path: string): string {
   const parts = path.split("/").filter(Boolean);
   return parts[parts.length - 1] ?? path;
+}
+
+function driveFolderPath(filePath: string): string {
+  const norm = filePath.startsWith("/") ? filePath : `/${filePath}`;
+  const lastSlash = norm.lastIndexOf("/");
+  if (lastSlash <= 0) return "/";
+  return `${norm.slice(0, lastSlash + 1)}`;
 }
 
 export function WritebackRow({ item, spaceSlug }: { item: WritebackItem; spaceSlug: string }) {
@@ -21,7 +28,10 @@ export function WritebackRow({ item, spaceSlug }: { item: WritebackItem; spaceSl
 
   return (
     <li className="DAO-reports-writeback">
-      <Link className="DAO-reports-writeback-link" to={spaceRoute(spaceSlug, "drive")}>
+      <Link
+        className="DAO-reports-writeback-link"
+        to={brainRoute(spaceSlug, { view: "drive", path: driveFolderPath(item.path) })}
+      >
         <span aria-hidden className="DAO-reports-writeback-icon">
           <FileOutput size={15} strokeWidth={1.6} />
         </span>

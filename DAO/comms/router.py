@@ -14,6 +14,8 @@ from DAO.comms import events as event_bus
 from DAO.db import rls_connection
 from DAO.deps import current_space_id, current_space_role, current_user_id
 from DAO.exceptions import ForbiddenError
+from DAO.objects.ingest import ingest_interdept_handoff
+from DAO.objects.repairs import infer_edges_safe
 
 router = APIRouter(tags=["comms"])
 
@@ -65,6 +67,25 @@ async def create_interdept(space_id: UUID, body: InterDeptCreate, request: Reque
             body.skill_refs,
             json.dumps(body.payload),
         )
+        await ingest_interdept_handoff(
+            conn,
+            space_id,
+            message_id=mid,
+            subject=body.subject,
+            from_dept=body.from_dept,
+            to_dept=body.to_dept,
+        )
+
+    uid = current_user_id(request)
+    if body.drive_refs:
+        async with rls_connection(space_id=space_id, user_id=uid) as conn:
+            await infer_edges_safe(
+                conn,
+                space_id,
+                source_table="interdept_messages",
+                source_id=mid,
+                drive_ref_ids=body.drive_refs,
+            )
 
     await event_bus.publish(
         space_id,
@@ -77,37 +98,6 @@ async def create_interdept(space_id: UUID, body: InterDeptCreate, request: Reque
         },
     )
     return {"id": str(mid)}
-
-
-@router.get("/spaces/{space_id}/command/snapshot")
-async def command_snapshot(space_id: UUID, request: Request):
-    async with rls_connection(space_id=space_id, user_id=current_user_id(request)) as conn:
-        agents = await conn.fetch(
-            """
-            SELECT department, agent_type, name FROM agents
-            WHERE space_id = $1 AND agent_type IN ('ai_lead', 'lead')
-            ORDER BY department
-            """,
-            space_id,
-        )
-        pending_hitl = await conn.fetchval(
-            "SELECT count(*) FROM hitl_requests WHERE space_id = $1 AND status = 'pending'",
-            space_id,
-        )
-        recent = await conn.fetch(
-            """
-            SELECT from_dept, to_dept, subject, created_at FROM interdept_messages
-            WHERE space_id = $1 ORDER BY created_at DESC LIMIT 10
-            """,
-            space_id,
-        )
-        depts = await event_bus.dept_status_for_space(conn, space_id)
-    return {
-        "ai_lead": next((a["name"] for a in agents if a["agent_type"] == "ai_lead"), "Jarvis"),
-        "departments": depts,
-        "pending_hitl": pending_hitl,
-        "recent_handoffs": [dict(r) for r in recent],
-    }
 
 
 @router.get("/spaces/{space_id}/events")

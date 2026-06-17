@@ -370,6 +370,20 @@
   color: var(--text-muted, #525252);
 }
 
+.DAO-util-empty-steps {
+  margin: 0.875rem auto 0;
+  max-width: 36ch;
+  padding-left: 1.125rem;
+  text-align: left;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-util-empty-steps li + li {
+  margin-top: 0.375rem;
+}
+
 .DAO-util-empty--lead {
   display: flex;
   flex-direction: column;
@@ -3103,6 +3117,14 @@
   transition: background 120ms ease;
 }
 
+.DAO-company-drive-row--button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
 .DAO-company-drive-row:hover {
   background: rgba(255, 255, 255, 0.03);
 }
@@ -4810,4 +4832,716 @@ button.DAO-company-settings-link {
   .DAO-brain-confidence-fill {
     transition: none;
   }
+}
+
+/* ── Brain panel guides & Space intro ─────────────────────────────────── */
+
+.DAO-brain-panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.DAO-panel-guide {
+  padding: 1rem 1.125rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--primary, #ab9ff2) 22%, var(--void-border, #1a1a1a));
+  background: color-mix(in srgb, var(--primary, #ab9ff2) 6%, transparent);
+}
+
+.DAO-panel-guide-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.DAO-panel-guide-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-panel-guide-purpose {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-panel-guide-body {
+  margin-top: 0.75rem;
+}
+
+.DAO-panel-guide-label {
+  margin: 0 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-panel-guide-list {
+  margin: 0;
+  padding-left: 1.125rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-panel-guide-list li + li {
+  margin-top: 0.25rem;
+}
+
+.DAO-panel-guide-tip {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-space-intro {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem 1.375rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.DAO-space-intro-title {
+  margin: 0.25rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-space-intro-meta {
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-space-intro-purpose {
+  margin: 0.75rem 0 0;
+  max-width: 52ch;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #a3a3a3);
+}
+
+.DAO-space-intro-link-grid {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .DAO-space-intro-link-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.DAO-company-settings-advanced {
+  grid-column: 1 / -1;
+}
+
+.DAO-company-settings-advanced-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.DAO-company-settings-advanced-summary::-webkit-details-marker {
+  display: none;
+}
+
+.DAO-company-settings-advanced-icon {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-company-settings-advanced[open] .DAO-company-settings-advanced-icon {
+  color: var(--primary, #ab9ff2);
+}
+
+.DAO-company-settings-advanced .DAO-company-settings-form {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--void-border, #1a1a1a);
+}
+
+/* Company Graph object primitives (Phase 1) */
+.DAO-object-primitives {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.DAO-object-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.DAO-object-overview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.DAO-object-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-object-timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.DAO-object-timeline-item {
+  display: grid;
+  grid-template-columns: 0.75rem 1fr;
+  gap: 0.75rem;
+}
+
+.DAO-object-timeline-marker {
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-top: 0.35rem;
+  border-radius: 999px;
+  background: var(--primary, #ab9ff2);
+  box-shadow: 0 0 0 3px rgba(171, 159, 242, 0.12);
+}
+
+.DAO-object-timeline-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.DAO-object-timeline-type {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  text-transform: capitalize;
+}
+
+.DAO-object-timeline-time {
+  font-size: 0.6875rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-object-timeline-actor {
+  margin: 0.125rem 0 0;
+  font-size: 0.6875rem;
+  color: var(--text-muted, #525252);
+}
+
+.DAO-object-related {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-object-related-item {
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-object-related-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.DAO-object-related-title {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-object-related-edge {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--text-muted, #525252);
+  text-transform: capitalize;
+}
+
+.DAO-object-create {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-object-create-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.DAO-object-create-select,
+.DAO-object-create-input {
+  min-height: 2rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text-primary, #fff);
+  font-size: 0.8125rem;
+  padding: 0 0.625rem;
+}
+
+.DAO-object-create-input {
+  flex: 1 1 12rem;
+}
+
+/* Phase 2 — Memory lens */
+.DAO-memory-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-memory-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-primary, #fff);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.DAO-memory-result:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.DAO-memory-result__type {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #737373);
+}
+
+.DAO-memory-result__title {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.DAO-memory-result__path {
+  font-size: 0.75rem;
+  color: var(--text-muted, #525252);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+/* Phase 2 — Work lens */
+.DAO-work-lens {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.DAO-work-focus {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-work-focus__card {
+  width: 100%;
+  text-align: left;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  color: inherit;
+  cursor: pointer;
+}
+
+.DAO-work-focus__card:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.DAO-work-focus__kind {
+  display: inline-block;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  color: var(--text-muted, #737373);
+  margin-bottom: 0.25rem;
+}
+
+.DAO-work-focus__title {
+  display: block;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.DAO-work-focus__context {
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted, #a3a3a3);
+}
+
+.DAO-work-stream-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.DAO-work-stream {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.DAO-work-stream:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.DAO-work-stream__verb {
+  font-size: 0.6875rem;
+  text-transform: capitalize;
+  color: var(--color-primary, #a78bfa);
+}
+
+.DAO-work-stream__title {
+  flex: 1;
+  font-size: 0.8125rem;
+}
+
+.DAO-work-operations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+}
+
+.DAO-work-ops-column__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #737373);
+  margin: 0 0 0.5rem;
+}
+
+.DAO-work-ops-column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.DAO-work-ops-empty {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #525252);
+  margin: 0;
+}
+
+.DAO-work-ops-card {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+  cursor: pointer;
+}
+
+.DAO-work-ops-card__headline {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--text-muted, #737373);
+}
+
+.DAO-work-ops-card__title {
+  display: block;
+  font-size: 0.8125rem;
+  margin-top: 0.125rem;
+}
+
+.DAO-work-activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.DAO-work-activity__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.375rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.DAO-work-activity__headline {
+  font-size: 0.75rem;
+  color: var(--color-primary, #a78bfa);
+}
+
+.DAO-work-activity__title {
+  font-size: 0.8125rem;
+  flex: 1;
+}
+
+.DAO-work-activity__meta {
+  font-size: 0.6875rem;
+  color: var(--text-muted, #525252);
+}
+
+/* Phase 3 — Automation lens */
+.DAO-automation-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-automation-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.DAO-automation-row__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.DAO-automation-row__name {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary, #fff);
+}
+
+.DAO-automation-row__cron {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--text-muted, #737373);
+}
+
+/* Object detail sheet */
+.DAO-object-sheet {
+  width: min(28rem, 100vw);
+  padding: 1rem 1.25rem 1.5rem;
+  overflow-y: auto;
+}
+
+.DAO-object-sheet__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.DAO-object-sheet__header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.DAO-object-primitives {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.DAO-object-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.DAO-object-overview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.DAO-object-overview__title {
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.DAO-object-related-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.DAO-object-related-button:hover .DAO-object-related-title {
+  color: var(--color-primary, #a78bfa);
+}
+
+.DAO-object-merge__hint {
+  margin: 0 0 0.625rem;
+  font-size: 0.75rem;
+  color: var(--text-muted, #737373);
+}
+
+.DAO-object-merge__hits {
+  list-style: none;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.DAO-object-merge__pick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  border: 1px solid var(--void-border, #1a1a1a);
+  background: rgba(255, 255, 255, 0.02);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.DAO-object-merge__pick:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.DAO-object-merge__pick-title {
+  font-size: 0.8125rem;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Memory timeline tab */
+.DAO-memory-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.DAO-memory-timeline__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.DAO-memory-timeline__type {
+  font-size: 0.8125rem;
+  text-transform: capitalize;
+}
+
+.DAO-memory-timeline__importance {
+  font-size: 0.6875rem;
+  color: var(--text-muted, #525252);
+}
+
+/* Work focus inbox hint */
+.DAO-work-focus__hint {
+  display: block;
+  margin-top: 0.375rem;
+  font-size: 0.6875rem;
+  color: var(--color-primary, #a78bfa);
+}
+
+/* Control lens — embedded org toolbar */
+.DAO-control-org-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0 0.75rem;
+  border-bottom: 1px solid var(--void-border, #1a1a1a);
+  margin-bottom: 0.75rem;
 }

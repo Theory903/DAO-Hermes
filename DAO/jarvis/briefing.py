@@ -8,10 +8,11 @@ import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-import asyncpg
+if TYPE_CHECKING:
+    import asyncpg
 
 _log = logging.getLogger(__name__)
 
@@ -551,10 +552,17 @@ async def generate_and_store_briefing(
         trigger_source=trigger_source,
         use_llm=use_llm,
     )
-    return await persist_briefing(
+    result = await persist_briefing(
         conn,
         space_id,
         markdown,
         generated_at,
         trigger_source=trigger_source,
     )
+    try:
+        from DAO.jarvis.home import record_home_snapshot
+
+        await record_home_snapshot(conn, space_id)
+    except Exception:
+        _log.debug("Home score snapshot skipped", exc_info=True)
+    return result

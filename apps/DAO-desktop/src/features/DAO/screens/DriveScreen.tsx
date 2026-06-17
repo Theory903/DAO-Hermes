@@ -4,10 +4,25 @@ import { Folder, Upload } from "lucide-react";
 import { UtilSideNavItem } from "@/app/util-page-nav";
 import { Button } from "@/components/ui/button";
 import { Codicon } from "@/components/ui/codicon";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
+import { ObjectPrimitives } from "../components/objects/ObjectPrimitives";
 import { getDriveTree, searchDrive, uploadToDrive, type DriveObject } from "../api/space-api";
 import { useSpaceContext } from "../context/SpaceContext";
 import { useAsync } from "../hooks/useAsync";
+import {
+  folderLabel,
+  listChildFolders,
+  normalizeDrivePath,
+  resolveFolderTarget,
+  visibleDriveObjects,
+} from "../lib/drive-nav";
 import {
   CompanyBanner,
   CompanyEmpty,
@@ -24,6 +39,7 @@ export function DriveScreen() {
   const [searching, setSearching] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selected, setSelected] = useState<DriveObject | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const tree = useAsync(() => getDriveTree(space.id, path), [space.id, path]);
 
@@ -63,14 +79,16 @@ export function DriveScreen() {
     }
   }
 
-  const objects = results ?? tree.data?.objects ?? [];
+  const allObjects = tree.data?.objects ?? [];
+  const objects = results ?? visibleDriveObjects(allObjects, path);
+  const childFolders = listChildFolders(tree.data?.folders ?? [], allObjects, path);
   const inSearch = results !== null;
   const loading = tree.loading || searching;
 
   function goUp() {
-    const parts = path.split("/").filter(Boolean);
+    const parts = normalizeDrivePath(path).split("/").filter(Boolean);
     parts.pop();
-    setPath(parts.length ? `/${parts.join("/")}` : "/");
+    setPath(parts.length ? normalizeDrivePath(`/${parts.join("/")}`) : "/");
   }
 
   return (
@@ -123,19 +141,16 @@ export function DriveScreen() {
                   ↑ Up
                 </UtilSideNavItem>
               ) : null}
-              {tree.data?.folders.map((folder) => {
-                const next = path === "/" ? `/${folder}` : `${path.replace(/\/$/, "")}/${folder}`;
-                return (
+              {childFolders.map((folder) => (
                   <UtilSideNavItem
                     avatar={<Folder size={14} />}
                     hint={folder}
                     key={folder}
-                    onClick={() => setPath(next)}
+                    onClick={() => setPath(resolveFolderTarget(path, folder))}
                   >
-                    {folder}
+                    {folderLabel(folder)}
                   </UtilSideNavItem>
-                );
-              })}
+                ))}
             </div>
           </aside>
         ) : null}
@@ -165,11 +180,17 @@ export function DriveScreen() {
             ) : (
               <ul className="DAO-company-feed">
                 {objects.map((obj) => (
-                  <li key={obj.id} className="DAO-company-drive-row">
-                    <span className="DAO-company-drive-row-name">{obj.path.split("/").pop() ?? obj.path}</span>
-                    {obj.produced_by_dept ? (
-                      <span className="DAO-company-pill DAO-company-pill--reused">{obj.produced_by_dept}</span>
-                    ) : null}
+                  <li key={obj.id}>
+                    <button
+                      className="DAO-company-drive-row DAO-company-drive-row--button"
+                      onClick={() => setSelected(obj)}
+                      type="button"
+                    >
+                      <span className="DAO-company-drive-row-name">{obj.path.split("/").pop() ?? obj.path}</span>
+                      {obj.produced_by_dept ? (
+                        <span className="DAO-company-pill DAO-company-pill--reused">{obj.produced_by_dept}</span>
+                      ) : null}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -177,6 +198,25 @@ export function DriveScreen() {
           </div>
         </main>
       </div>
+
+      <Sheet onOpenChange={(open) => !open && setSelected(null)} open={Boolean(selected)}>
+        <SheetContent className="DAO-company-hitl-sheet" showCloseButton side="right">
+          {selected ? (
+            <>
+              <SheetHeader>
+                <SheetTitle>{selected.path.split("/").pop() ?? selected.path}</SheetTitle>
+                <SheetDescription>{selected.path}</SheetDescription>
+              </SheetHeader>
+              <ObjectPrimitives
+                missingLabel="Upload is saved to Drive. Timeline appears once indexed in company memory."
+                sourceId={selected.id}
+                sourceTable="drive_objects"
+                spaceId={space.id}
+              />
+            </>
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </DAOCompanyShell>
   );
 }

@@ -67,6 +67,26 @@ function pathToFileUrl(path: string) {
   return `file://${encoded.startsWith('/') ? encoded : `/${encoded}`}`
 }
 
+export function isBrowsableHttpUrl(raw: string): boolean {
+  try {
+    const url = new URL(raw.trim())
+    if (!/^https?:$/i.test(url.protocol)) {
+      return false
+    }
+    const host = url.hostname.toLowerCase()
+    if (!host) {
+      return false
+    }
+    if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '[::1]') {
+      return true
+    }
+    // Reject truncated domains from agent output (e.g. https://boards.g/, https://www.druva/)
+    return host.includes('.') && !host.endsWith('.')
+  } catch {
+    return false
+  }
+}
+
 export function localPreviewTarget(rawTarget: string, cwd?: string | null): PreviewTarget | null {
   const raw = rawTarget.trim().replace(/^`|`$/g, '')
 
@@ -75,6 +95,9 @@ export function localPreviewTarget(rawTarget: string, cwd?: string | null): Prev
   }
 
   if (/^https?:\/\//i.test(raw)) {
+    if (!isBrowsableHttpUrl(raw)) {
+      return null
+    }
     return { kind: 'url', label: basename(raw), source: raw, url: raw }
   }
 

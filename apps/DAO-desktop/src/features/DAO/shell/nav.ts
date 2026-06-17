@@ -1,9 +1,13 @@
 import {
   Brain,
   Home,
+  Layers,
   MessageSquare,
   Network,
+  Search,
   Settings,
+  SlidersHorizontal,
+  Zap,
   type LucideIcon
 } from 'lucide-react'
 
@@ -40,11 +44,18 @@ export const DAO_CHAT_NAV_ITEM: NavItem = {
 /** Work surfaces — daily navigation. */
 export const DAO_NAV_PRIMARY_ITEMS: NavItem[] = [
   { key: '', label: 'Home', icon: Home },
+  { key: 'work', label: 'Work', hint: 'Focus, operations, and active streams', icon: Layers },
   { key: 'org', label: 'Org', hint: 'Live floor, structure, and activity', icon: Network }
 ]
 
 /** Knowledge hub — truths, wiki, drive, briefings, writebacks. */
 export const DAO_NAV_KNOWLEDGE_ITEMS: NavItem[] = [
+  {
+    key: 'memory',
+    label: 'Memory',
+    hint: 'Search documents, projects, and decisions',
+    icon: Search
+  },
   {
     key: 'brain',
     label: 'Brain',
@@ -59,8 +70,26 @@ export const DAO_NAV_KNOWLEDGE_ITEM: NavItem = DAO_NAV_KNOWLEDGE_ITEMS[0]
 export const DAO_NAV_SPACE_ITEM: NavItem = {
   key: 'settings',
   label: 'Space',
-  hint: 'Space settings',
+  hint: 'Company setup, team, and app preferences',
   icon: Settings
+}
+
+/** Six-lens nav (Phase 3) — additive; legacy routes stay until removed. */
+export const DAO_LENS_PRIMARY_ITEMS: NavItem[] = [
+  { key: '', label: 'Home', icon: Home },
+  { key: 'work', label: 'Work', hint: 'Focus, operations, and active streams', icon: Layers },
+  { key: 'memory', label: 'Memory', hint: 'Search documents, projects, and decisions', icon: Search }
+]
+
+export const DAO_LENS_SECONDARY_ITEMS: NavItem[] = [
+  { key: 'automation', label: 'Automation', hint: 'Playbooks and scheduled outcomes', icon: Zap }
+]
+
+export const DAO_LENS_CONTROL_ITEM: NavItem = {
+  key: 'control',
+  label: 'Control',
+  hint: 'Organization, settings, and policies',
+  icon: SlidersHorizontal
 }
 
 /** Space screens — Home first; Chat is rendered separately in the topbar. */
@@ -73,12 +102,12 @@ export const DAO_COMPANY_NAV_ITEMS: NavItem[] = [
 /** @deprecated Use DAO_COMPANY_NAV_ITEMS + DAO_CHAT_NAV_ITEM */
 export const DAO_NAV_ITEMS: NavItem[] = [...DAO_COMPANY_NAV_ITEMS, DAO_CHAT_NAV_ITEM]
 
-/** Segmented topbar items — shared by company layout and chat shell. */
+/** Segmented topbar items — six-lens navigation. */
 export function DAONavSegments(_variant: DAONavVariant = 'default'): DAONavSegments {
   return {
-    work: DAO_NAV_PRIMARY_ITEMS,
-    knowledge: DAO_NAV_KNOWLEDGE_ITEMS,
-    space: DAO_NAV_SPACE_ITEM
+    work: DAO_LENS_PRIMARY_ITEMS,
+    knowledge: DAO_LENS_SECONDARY_ITEMS,
+    space: DAO_LENS_CONTROL_ITEM,
   }
 }
 
@@ -113,13 +142,33 @@ export function isNavItemActive(slug: string, pathname: string, item: NavItem): 
     return pathname === spaceRoute(slug, '')
   }
 
-  if (item.key === 'brain') {
+  if (item.key === 'memory') {
     return (
+      pathname.startsWith(spaceRoute(slug, 'memory')) ||
       pathname.startsWith(spaceRoute(slug, 'brain')) ||
       pathname.startsWith(spaceRoute(slug, 'reports')) ||
       pathname.startsWith(spaceRoute(slug, 'wiki')) ||
       pathname.startsWith(spaceRoute(slug, 'drive'))
     )
+  }
+
+  if (item.key === 'work') {
+    return (
+      pathname.startsWith(spaceRoute(slug, 'work')) ||
+      pathname.startsWith(spaceRoute(slug, 'command'))
+    )
+  }
+
+  if (item.key === 'control') {
+    return (
+      pathname.startsWith(spaceRoute(slug, 'control')) ||
+      pathname.startsWith(spaceRoute(slug, 'settings')) ||
+      pathname.startsWith(spaceRoute(slug, 'org'))
+    )
+  }
+
+  if (item.key === 'automation') {
+    return pathname.startsWith(spaceRoute(slug, 'automation'))
   }
 
   if (item.key === 'org') {

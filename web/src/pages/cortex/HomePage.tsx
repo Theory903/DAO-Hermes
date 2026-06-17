@@ -34,6 +34,10 @@ type Snapshot = {
   departments: Record<string, string>;
 };
 
+type WorkBundle = {
+  floor: Snapshot;
+};
+
 export default function HomePage() {
   const { setEnd } = usePageHeader();
   const spaceId = getDAOSpaceId();
@@ -54,12 +58,12 @@ export default function HomePage() {
       DAOFetch<{ markdown: string }>(
         spaceApiPath(spaceId, "/jarvis/briefing/latest"),
       ),
-      DAOFetch<Snapshot>(spaceApiPath(spaceId, "/command/snapshot")),
+      DAOFetch<WorkBundle>(spaceApiPath(spaceId, "/work/bundle")),
       DAOFetch<{ objects: unknown[] }>(spaceApiPath(spaceId, "/drive/tree")),
     ])
-      .then(([b, s, tree]) => {
+      .then(([b, bundle, tree]) => {
         setBriefing(b.markdown);
-        setSnap(s);
+        setSnap(bundle.floor);
         setFileCount(tree.objects?.length ?? 0);
       })
       .finally(() => setLoading(false));

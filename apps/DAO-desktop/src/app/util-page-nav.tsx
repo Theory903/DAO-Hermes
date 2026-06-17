@@ -26,9 +26,10 @@ type UtilChipSwitchItemProps = {
   className?: string
   count?: number | string
   onClick?: () => void
+  title?: string
 }
 
-export function UtilChipSwitchItem({ active, children, className, count, onClick }: UtilChipSwitchItemProps) {
+export function UtilChipSwitchItem({ active, children, className, count, onClick, title }: UtilChipSwitchItemProps) {
   return (
     <button
       aria-selected={active}
@@ -36,6 +37,7 @@ export function UtilChipSwitchItem({ active, children, className, count, onClick
       data-active={active ? 'true' : 'false'}
       onClick={onClick}
       role="tab"
+      title={title}
       type="button"
     >
       <span className="DAO-util-chip-switch-item-label">{children}</span>

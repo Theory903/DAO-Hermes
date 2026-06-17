@@ -83,7 +83,7 @@ async def ensure_wiki_initialized(
     """Backfill SCHEMA.md, index.md, and log.md when missing. Returns True if any file was created."""
     from DAO.drive.store import store_text_object
 
-    domain_label = (domain or await _space_display_name(conn)).strip() or "Company knowledge"
+    domain_label = (domain or await _space_display_name(conn, space_id)).strip() or "Company knowledge"
     today = date.today().isoformat()
     created = False
 

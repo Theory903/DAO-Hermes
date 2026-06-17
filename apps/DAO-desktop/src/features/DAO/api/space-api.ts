@@ -21,6 +21,13 @@ import type {
   DepartmentMeta,
   AgentRow,
   Automation,
+  HomeBundle,
+  FocusCard,
+  ObjectBundle,
+  ObjectEvent,
+  SpaceObject,
+  MemorySearchHit,
+  WorkBundle,
 } from './types'
 
 export type {
@@ -38,6 +45,13 @@ export type {
   DepartmentMeta,
   AgentRow,
   Automation,
+  HomeBundle,
+  FocusCard,
+  ObjectBundle,
+  ObjectEvent,
+  SpaceObject,
+  MemorySearchHit,
+  WorkBundle,
 }
 
 function sp(spaceId: string, path: string): string {
@@ -94,8 +108,36 @@ export function triggerBriefing(spaceId: string): Promise<{ triggered: boolean }
   return DAOFetch(sp(spaceId, '/jarvis/briefing/trigger'), { method: 'POST' })
 }
 
+export function getHomeBundle(spaceId: string): Promise<HomeBundle> {
+  return DAOFetch<HomeBundle>(sp(spaceId, '/home'))
+}
+
+export function approveFocus(
+  spaceId: string,
+  requestId: string,
+): Promise<{ ok: boolean; status: string }> {
+  return DAOFetch(sp(spaceId, `/home/focus/${requestId}/approve`), { method: 'POST' })
+}
+
+export function ignoreFocus(
+  spaceId: string,
+  requestId: string,
+): Promise<{ ok: boolean; snoozed_until: string }> {
+  return DAOFetch(sp(spaceId, `/home/focus/${requestId}/ignore`), { method: 'POST' })
+}
+
 export function getCommandSnapshot(spaceId: string): Promise<CommandSnapshot> {
-  return DAOFetch<CommandSnapshot>(sp(spaceId, '/command/snapshot'))
+  return getWorkBundle(spaceId).then((bundle) => bundle.floor)
+}
+
+/** GET /api/v1/spaces/{id}/memory/entities */
+export function listBrainEntities(spaceId: string): Promise<{ entities: BrainEntitySummary[] }> {
+  return DAOFetch<{ entities: BrainEntitySummary[] }>(sp(spaceId, '/memory/entities'))
+}
+
+/** GET /api/v1/spaces/{id}/memory/entities/{slug} */
+export function getBrainEntity(spaceId: string, slug: string): Promise<BrainEntityDetail> {
+  return DAOFetch<BrainEntityDetail>(sp(spaceId, `/memory/entities/${encodeURIComponent(slug)}`))
 }
 
 /** GET /api/v1/spaces/{id}/drive/tree */
@@ -198,16 +240,6 @@ export function getWiki(spaceId: string): Promise<WikiSnapshot> {
 
 export function getWikiPage(spaceId: string, pageKey: string): Promise<WikiPage> {
   return DAOFetch<WikiPage>(sp(spaceId, `/wiki/pages/${encodeURIComponent(pageKey)}`))
-}
-
-/** GET /api/v1/spaces/{id}/brain/entities */
-export function listBrainEntities(spaceId: string): Promise<{ entities: BrainEntitySummary[] }> {
-  return DAOFetch<{ entities: BrainEntitySummary[] }>(sp(spaceId, '/brain/entities'))
-}
-
-/** GET /api/v1/spaces/{id}/brain/entities/{slug} */
-export function getBrainEntity(spaceId: string, slug: string): Promise<BrainEntityDetail> {
-  return DAOFetch<BrainEntityDetail>(sp(spaceId, `/brain/entities/${encodeURIComponent(slug)}`))
 }
 
 /** GET /api/v1/spaces/{id}/org/chart */
@@ -348,4 +380,79 @@ export function inviteSpaceMember(
 
 export function removeSpaceMember(spaceId: string, memberId: string): Promise<void> {
   return DAOFetch<void>(sp(spaceId, `/members/${memberId}`), { method: 'DELETE' })
+}
+
+export function getSpaceObject(spaceId: string, objectId: string): Promise<ObjectBundle> {
+  return DAOFetch<ObjectBundle>(sp(spaceId, `/objects/${objectId}`))
+}
+
+export function getObjectBySource(
+  spaceId: string,
+  sourceTable: string,
+  sourceId: string,
+): Promise<ObjectBundle> {
+  return DAOFetch<ObjectBundle>(sp(spaceId, `/objects/source/${sourceTable}/${sourceId}`))
+}
+
+export function listSpaceObjects(
+  spaceId: string,
+  params?: { object_type?: string; q?: string; limit?: number },
+): Promise<{ objects: SpaceObject[] }> {
+  const search = new URLSearchParams()
+  if (params?.object_type) search.set('object_type', params.object_type)
+  if (params?.q) search.set('q', params.q)
+  if (params?.limit) search.set('limit', String(params.limit))
+  const qs = search.toString()
+  return DAOFetch(sp(spaceId, `/objects${qs ? `?${qs}` : ''}`))
+}
+
+export function createSpaceObject(
+  spaceId: string,
+  body: { object_type: 'project' | 'decision'; title: string; metadata?: Record<string, unknown> },
+): Promise<ObjectBundle> {
+  return DAOFetch<ObjectBundle>(sp(spaceId, '/objects'), {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export function mergeSpaceObjects(
+  spaceId: string,
+  loserId: string,
+  intoObjectId: string,
+): Promise<{ survivor_id: string }> {
+  return DAOFetch(sp(spaceId, `/objects/${loserId}/merge`), {
+    method: 'POST',
+    body: JSON.stringify({ into_object_id: intoObjectId }),
+  })
+}
+
+export function searchMemory(
+  spaceId: string,
+  params?: { q?: string; object_type?: string; status?: string; limit?: number },
+): Promise<{ objects: MemorySearchHit[]; q: string }> {
+  const search = new URLSearchParams()
+  if (params?.q) search.set('q', params.q)
+  if (params?.object_type) search.set('object_type', params.object_type)
+  if (params?.status) search.set('status', params.status)
+  if (params?.limit) search.set('limit', String(params.limit))
+  const qs = search.toString()
+  return DAOFetch(sp(spaceId, `/memory/search${qs ? `?${qs}` : ''}`))
+}
+
+export function getWorkBundle(spaceId: string): Promise<WorkBundle> {
+  return DAOFetch<WorkBundle>(sp(spaceId, '/work/bundle'))
+}
+
+export function getMemoryTimeline(
+  spaceId: string,
+  params?: { importance_gte?: number; limit?: number },
+): Promise<{ events: ObjectEvent[] }> {
+  const search = new URLSearchParams()
+  if (params?.importance_gte !== undefined) {
+    search.set('importance_gte', String(params.importance_gte))
+  }
+  if (params?.limit) search.set('limit', String(params.limit))
+  const qs = search.toString()
+  return DAOFetch(sp(spaceId, `/memory/timeline${qs ? `?${qs}` : ''}`))
 }

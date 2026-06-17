@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react'
 import { type MutableRefObject, useCallback, useEffect } from 'react'
 
-import { gatewayEventCompletedFileDiff } from '@/lib/gateway-events'
+import { isBrowsableHttpUrl } from '@/lib/local-preview'
 import {
   $previewTarget,
   $sessionPreviewRegistry,
@@ -41,7 +41,11 @@ function activePreviewSessionId(
 }
 
 function looksLikePreviewTarget(value: string): boolean {
-  return /^https?:\/\//i.test(value) || /^file:\/\//i.test(value) || /^(?:\/|\.{1,2}\/|~\/).+/.test(value)
+  const trimmed = value.trim()
+  if (/^https?:\/\//i.test(trimmed)) {
+    return isBrowsableHttpUrl(trimmed)
+  }
+  return /^file:\/\//i.test(trimmed) || /^(?:\/|\.{1,2}\/|~\/).+/.test(trimmed)
 }
 
 function stripAnsi(value: string): string {

@@ -53,20 +53,17 @@ def maybe_publish_supervisor_route(payload: dict[str, Any] | None) -> None:
     if not space_id:
         return
     try:
-        import asyncio
         from uuid import UUID
 
         from DAO.comms import events as event_bus
+        from DAO.db import schedule_fire_and_forget
 
-        loop = asyncio.get_event_loop()
-        coro = event_bus.publish(
-            UUID(str(space_id)),
-            "supervisor.route",
-            {k: v for k, v in payload.items() if k != "space_id"},
+        schedule_fire_and_forget(
+            event_bus.publish(
+                UUID(str(space_id)),
+                "supervisor.route",
+                {k: v for k, v in payload.items() if k != "space_id"},
+            )
         )
-        if loop.is_running():
-            loop.create_task(coro)
-        else:
-            loop.run_until_complete(coro)
     except Exception as exc:
         _log.debug("supervisor.route publish skipped: %s", exc)

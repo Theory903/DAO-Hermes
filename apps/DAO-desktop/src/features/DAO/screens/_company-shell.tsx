@@ -58,30 +58,40 @@ export function CompanyEmpty({
   title,
   description,
   leadName,
+  steps,
 }: {
   title: string
   description: string
   leadName?: string
+  steps?: string[]
 }) {
+  const body = (
+    <>
+      <div className="DAO-util-empty-title">{title}</div>
+      {leadName ? <CompanyPoweredBy className="DAO-util-empty-powered" /> : null}
+      <div className="DAO-util-empty-desc">{description}</div>
+      {steps && steps.length > 0 ? (
+        <ol className="DAO-util-empty-steps">
+          {steps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+      ) : null}
+    </>
+  )
+
   if (leadName) {
     return (
       <div className="DAO-util-empty DAO-util-empty--lead">
         <CompanyLeadAvatar name={leadName} />
-        <div>
-          <div className="DAO-util-empty-title">{title}</div>
-          <CompanyPoweredBy className="DAO-util-empty-powered" />
-          <div className="DAO-util-empty-desc">{description}</div>
-        </div>
+        <div>{body}</div>
       </div>
     )
   }
 
   return (
     <div className="DAO-util-empty">
-      <div>
-        <div className="DAO-util-empty-title">{title}</div>
-        <div className="DAO-util-empty-desc">{description}</div>
-      </div>
+      <div>{body}</div>
     </div>
   )
 }

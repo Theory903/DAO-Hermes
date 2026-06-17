@@ -8,7 +8,7 @@ import re
 from datetime import datetime, timezone
 
 from DAO.config import DAO_enabled
-from DAO.db import rls_connection
+from DAO.db import rls_connection, schedule_fire_and_forget
 from DAO.drive.store import store_text_object
 from DAO.runtime import get_runtime_context
 
@@ -52,13 +52,9 @@ def maybe_DAO_tool_writeback(
     body = f"# Tool writeback: {tool_name}\n\n{text}"
 
     try:
-        import asyncio
-
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            loop.create_task(_writeback_async(ctx.space_id, ctx.user_id, path, body, str(dept)))
-        else:
-            loop.run_until_complete(_writeback_async(ctx.space_id, ctx.user_id, path, body, str(dept)))
+        schedule_fire_and_forget(
+            _writeback_async(ctx.space_id, ctx.user_id, path, body, str(dept))
+        )
     except Exception as exc:
         _log.debug("DAO tool writeback skipped: %s", exc)
 

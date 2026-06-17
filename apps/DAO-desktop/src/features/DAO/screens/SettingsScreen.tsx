@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "@nanostores/react";
-import { AudioLines, HardDrive, KeyRound, LogOut, Palette, RefreshCw, Save, UserPlus } from "lucide-react";
+import { AudioLines, KeyRound, LogOut, Palette, RefreshCw, Save, UserPlus } from "lucide-react";
 
 import { fetchAuthMe, patchAuthMe } from '@/lib/DAO-api'
 import { $wakeWord, BUILTIN_WAKE_WORDS, setWakeWord } from "@/store/wake-word";
@@ -23,8 +23,10 @@ import { useSpaceContext } from "../context/SpaceContext";
 import { DEFAULT_LEAD_NAME } from "../lib/space-lead";
 import { spaceRoute } from "../routes";
 import { CompanyScroll, DAOCompanyShell } from "./_company-shell";
+import { SPACE_SECTIONS, SPACE_SHELL } from "./space/space-copy";
+import { SpaceSettingsIntro } from "./space/SpaceSettingsIntro";
 
-export function SettingsScreen() {
+export function SettingsScreen({ embedded = false }: { embedded?: boolean }) {
   const space = useSpaceContext();
   const { switchSpace, logout } = useAuth();
   const openHermesOverlay = useHermesOverlayNav();
@@ -56,7 +58,6 @@ export function SettingsScreen() {
     const reader = new FileReader();
     reader.addEventListener("load", () => {
       const result = typeof reader.result === "string" ? reader.result : "";
-      // Strip the data: URL prefix — Porcupine wants the raw base64.
       const base64 = result.includes(",") ? result.slice(result.indexOf(",") + 1) : result;
       if (!base64) {
         setPpnError("Could not read that .ppn file.");
@@ -173,36 +174,28 @@ export function SettingsScreen() {
     [space.id],
   );
 
-  return (
-    <DAOCompanyShell
-      description="Company controls live here. Models, providers, and gateway settings open in the native app preferences panel."
-      title="Space & preferences"
-    >
-      <CompanyScroll>
-        <div className="DAO-company-settings-grid">
+  const settingsGrid = (
+    <div className="DAO-company-settings-grid">
+          <SpaceSettingsIntro leadName={leadName} slug={space.slug} spaceName={space.name} />
+
           <section aria-labelledby="space-settings-heading" className="DAO-company-settings-panel">
             <header>
-              <p className="DAO-company-settings-eyebrow">Space settings</p>
+              <p className="DAO-company-settings-eyebrow">{SPACE_SECTIONS.identity.eyebrow}</p>
               <h2 className="DAO-company-settings-title" id="space-settings-heading">
                 {space.name}
               </h2>
               <p className="DAO-company-settings-sub">
                 <span className="font-mono text-[0.75rem]">/{space.slug}</span>
-                {" · "}
-                AI Lead {leadName}
               </p>
             </header>
-            <p className="DAO-company-settings-copy">
-              Switch company instances or sign out of DAO. RLS and Drive isolation follow the active Space.
-            </p>
+            <p className="DAO-company-settings-copy">{SPACE_SECTIONS.identity.blurb}</p>
             <ul className="DAO-company-settings-links">
               <li>
-                <Link className="DAO-company-settings-link" to={spaceRoute(space.slug, "drive")}>
-                  <HardDrive aria-hidden size={18} />
+                <Link className="DAO-company-settings-link" to={spaceRoute(space.slug, "memory")}>
                   <span>
-                    <strong>Company knowledge</strong>
+                    <strong>Open Memory</strong>
                     <span className="DAO-company-settings-link-desc">
-                      Upload brand guides and research — agents preflight here
+                      Facts, wiki, files, and briefings for this Space
                     </span>
                   </span>
                 </Link>
@@ -222,14 +215,12 @@ export function SettingsScreen() {
 
           <section aria-labelledby="jarvis-settings-heading" className="DAO-company-settings-panel">
             <header>
-              <p className="DAO-company-settings-eyebrow">AI Lead</p>
+              <p className="DAO-company-settings-eyebrow">{SPACE_SECTIONS.lead.eyebrow}</p>
               <h2 className="DAO-company-settings-title" id="jarvis-settings-heading">
-                AI Lead configuration
+                {leadName}
               </h2>
             </header>
-            <p className="DAO-company-settings-copy">
-              Mission and persona shape supervisor routing and department delegation hints each turn.
-            </p>
+            <p className="DAO-company-settings-copy">{SPACE_SECTIONS.lead.blurb}</p>
             <div className="DAO-company-settings-form">
               <label className="DAO-company-settings-field">
                 <span>Display name</span>
@@ -244,15 +235,17 @@ export function SettingsScreen() {
                 <textarea
                   className="DAO-company-settings-textarea"
                   onChange={(e) => setMission(e.target.value)}
+                  placeholder="What is this company trying to achieve?"
                   rows={3}
                   value={mission}
                 />
               </label>
               <label className="DAO-company-settings-field">
-                <span>Persona</span>
+                <span>Persona & tone</span>
                 <textarea
                   className="DAO-company-settings-textarea"
                   onChange={(e) => setPersona(e.target.value)}
+                  placeholder="Direct, analytical, friendly…"
                   rows={2}
                   value={persona}
                 />
@@ -266,157 +259,14 @@ export function SettingsScreen() {
             </div>
           </section>
 
-          <section aria-labelledby="wakeword-heading" className="DAO-company-settings-panel">
-            <header>
-              <p className="DAO-company-settings-eyebrow">Voice</p>
-              <h2 className="DAO-company-settings-title" id="wakeword-heading">
-                <AudioLines aria-hidden className="mr-1.5 inline align-[-3px]" size={18} />
-                Wake word
-              </h2>
-            </header>
-            <p className="DAO-company-settings-copy">
-              Hands-free "{wake.customPpnBase64 ? wake.customLabel || "your keyword" : wake.builtin}" detection on the
-              Home screen. Runs fully on-device via Picovoice Porcupine — audio never leaves this machine. Needs a free{" "}
-              <a
-                className="underline"
-                href="https://console.picovoice.ai/"
-                rel="noreferrer"
-                target="_blank"
-              >
-                Picovoice AccessKey
-              </a>
-              .
-            </p>
-            <div className="DAO-company-settings-form">
-              <label className="DAO-company-settings-field DAO-company-settings-field--row">
-                <input
-                  checked={wake.enabled}
-                  onChange={(e) => setWakeWord({ enabled: e.target.checked })}
-                  type="checkbox"
-                />
-                <span>Enable wake word on Home</span>
-              </label>
-              <label className="DAO-company-settings-field">
-                <span>Picovoice AccessKey</span>
-                <input
-                  className="DAO-company-settings-input DAO-company-settings-input--mono"
-                  onChange={(e) => setWakeWord({ accessKey: e.target.value })}
-                  placeholder="AccessKey from console.picovoice.ai"
-                  type="password"
-                  value={wake.accessKey}
-                />
-              </label>
-              <label className="DAO-company-settings-field">
-                <span>Built-in keyword</span>
-                <select
-                  className="DAO-company-settings-input"
-                  disabled={Boolean(wake.customPpnBase64)}
-                  onChange={(e) => setWakeWord({ builtin: e.target.value })}
-                  value={wake.builtin}
-                >
-                  {BUILTIN_WAKE_WORDS.map((word) => (
-                    <option key={word} value={word}>
-                      {word}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="DAO-company-settings-field">
-                <span>Custom keyword (.ppn) — train one in the Picovoice Console</span>
-                <input
-                  accept=".ppn"
-                  className="DAO-company-settings-input"
-                  onChange={(e) => onUploadPpn(e.target.files?.[0] ?? null)}
-                  type="file"
-                />
-              </label>
-              {wake.customPpnBase64 ? (
-                <p className="DAO-company-settings-copy">
-                  Using custom keyword <strong>{wake.customLabel || "Custom keyword"}</strong>.{" "}
-                  <button
-                    className="underline"
-                    onClick={() => setWakeWord({ customPpnBase64: "", customLabel: "" })}
-                    type="button"
-                  >
-                    Use built-in instead
-                  </button>
-                </p>
-              ) : null}
-              {ppnError ? <p className="DAO-company-settings-error">{ppnError}</p> : null}
-              <label className="DAO-company-settings-field">
-                <span>Sensitivity — {Math.round(wake.sensitivity * 100)}%</span>
-                <input
-                  max={1}
-                  min={0}
-                  onChange={(e) => setWakeWord({ sensitivity: Number(e.target.value) })}
-                  step={0.05}
-                  type="range"
-                  value={wake.sensitivity}
-                />
-              </label>
-              <p className="DAO-company-settings-copy">
-                Higher sensitivity catches the word more reliably but triggers more false positives.
-              </p>
-            </div>
-          </section>
-
-          <section aria-labelledby="personal-heading" className="DAO-company-settings-panel">
-            <header>
-              <p className="DAO-company-settings-eyebrow">Personal</p>
-              <h2 className="DAO-company-settings-title" id="personal-heading">
-                Home greeting
-              </h2>
-            </header>
-            <p className="DAO-company-settings-copy">
-              {profileName ? `Signed in as ${profileName}.` : "Personalize the Space home hero."}
-            </p>
-            <div className="DAO-company-settings-form">
-              <label className="DAO-company-settings-field">
-                <span>Birthday (MM-DD)</span>
-                <input
-                  className="DAO-company-settings-input DAO-company-settings-input--mono"
-                  maxLength={5}
-                  onChange={(e) => setBirthday(e.target.value)}
-                  placeholder="06-14"
-                  value={birthday}
-                />
-              </label>
-              {savedBirthday ? <p className="DAO-company-settings-success">Saved to your profile</p> : null}
-              <Button
-                disabled={savingBirthday || !/^\d{2}-\d{2}$/.test(birthday.trim())}
-                onClick={() => {
-                  const trimmed = birthday.trim();
-                  if (!/^\d{2}-\d{2}$/.test(trimmed)) return;
-                  setSavingBirthday(true);
-                  void patchAuthMe({ birthday_mm_dd: trimmed })
-                    .then(() => {
-                      setSavedBirthday(true);
-                      window.setTimeout(() => setSavedBirthday(false), 1800);
-                    })
-                    .finally(() => setSavingBirthday(false));
-                }}
-                size="sm"
-                type="button"
-                variant="secondary"
-              >
-                {savingBirthday ? "Saving…" : "Save birthday"}
-              </Button>
-            </div>
-            <p className="DAO-company-settings-copy">
-              Your AI Lead uses this when generating your daily home greeting.
-            </p>
-          </section>
-
           <section aria-labelledby="members-heading" className="DAO-company-settings-panel">
             <header>
-              <p className="DAO-company-settings-eyebrow">Team</p>
+              <p className="DAO-company-settings-eyebrow">{SPACE_SECTIONS.team.eyebrow}</p>
               <h2 className="DAO-company-settings-title" id="members-heading">
-                Space members
+                People in this Space
               </h2>
             </header>
-            <p className="DAO-company-settings-copy">
-              Invite teammates by email. New users are created on first invite if they have not signed in yet.
-            </p>
+            <p className="DAO-company-settings-copy">{SPACE_SECTIONS.team.blurb}</p>
             {membersLoading ? <p className="DAO-company-settings-copy">Loading members…</p> : null}
             {membersError ? <p className="DAO-company-settings-error">{membersError}</p> : null}
             <ul className="DAO-company-settings-members">
@@ -461,9 +311,9 @@ export function SettingsScreen() {
                   }
                   value={inviteRole}
                 >
-                  <option value="admin">Admin</option>
-                  <option value="member">Member</option>
-                  <option value="viewer">Viewer</option>
+                  <option value="admin">Admin — settings & invites</option>
+                  <option value="member">Member — chat & Brain</option>
+                  <option value="viewer">Viewer — read only</option>
                 </select>
               </label>
               <Button onClick={() => void inviteMember()} size="sm" type="button">
@@ -473,17 +323,59 @@ export function SettingsScreen() {
             </div>
           </section>
 
-          <section aria-labelledby="app-prefs-heading" className="DAO-company-settings-panel">
+          <section aria-labelledby="personal-heading" className="DAO-company-settings-panel">
             <header>
-              <p className="DAO-company-settings-eyebrow">App preferences</p>
-              <h2 className="DAO-company-settings-title" id="app-prefs-heading">
-                DAO agent
+              <p className="DAO-company-settings-eyebrow">{SPACE_SECTIONS.you.eyebrow}</p>
+              <h2 className="DAO-company-settings-title" id="personal-heading">
+                Home greeting
               </h2>
             </header>
             <p className="DAO-company-settings-copy">
-              Default model, provider keys, MCP servers, appearance, voice, and gateway connection. Opens as an overlay
-              so you stay in this Space — same panel as the chat gear and status footer.
+              {profileName ? `Signed in as ${profileName}. ` : ""}
+              {SPACE_SECTIONS.you.blurb}
             </p>
+            <div className="DAO-company-settings-form">
+              <label className="DAO-company-settings-field">
+                <span>Birthday (MM-DD)</span>
+                <input
+                  className="DAO-company-settings-input DAO-company-settings-input--mono"
+                  maxLength={5}
+                  onChange={(e) => setBirthday(e.target.value)}
+                  placeholder="06-14"
+                  value={birthday}
+                />
+              </label>
+              {savedBirthday ? <p className="DAO-company-settings-success">Saved to your profile</p> : null}
+              <Button
+                disabled={savingBirthday || !/^\d{2}-\d{2}$/.test(birthday.trim())}
+                onClick={() => {
+                  const trimmed = birthday.trim();
+                  if (!/^\d{2}-\d{2}$/.test(trimmed)) return;
+                  setSavingBirthday(true);
+                  void patchAuthMe({ birthday_mm_dd: trimmed })
+                    .then(() => {
+                      setSavedBirthday(true);
+                      window.setTimeout(() => setSavedBirthday(false), 1800);
+                    })
+                    .finally(() => setSavingBirthday(false));
+                }}
+                size="sm"
+                type="button"
+                variant="secondary"
+              >
+                {savingBirthday ? "Saving…" : "Save birthday"}
+              </Button>
+            </div>
+          </section>
+
+          <section aria-labelledby="app-prefs-heading" className="DAO-company-settings-panel">
+            <header>
+              <p className="DAO-company-settings-eyebrow">{SPACE_SECTIONS.app.eyebrow}</p>
+              <h2 className="DAO-company-settings-title" id="app-prefs-heading">
+                Preferences
+              </h2>
+            </header>
+            <p className="DAO-company-settings-copy">{SPACE_SECTIONS.app.blurb}</p>
             <ul className="DAO-company-settings-links">
               <li>
                 <button
@@ -506,8 +398,8 @@ export function SettingsScreen() {
                 >
                   <KeyRound aria-hidden size={18} />
                   <span>
-                    <strong>Models & providers</strong>
-                    <span className="DAO-company-settings-link-desc">API keys, accounts, fallbacks</span>
+                    <strong>Models & API keys</strong>
+                    <span className="DAO-company-settings-link-desc">Providers, fallbacks, accounts</span>
                   </span>
                 </button>
               </li>
@@ -518,15 +410,104 @@ export function SettingsScreen() {
                   type="button"
                 >
                   <span>
-                    <strong>Open all app preferences</strong>
-                    <span className="DAO-company-settings-link-desc">Gateway, MCP, sessions, and more</span>
+                    <strong>All app settings</strong>
+                    <span className="DAO-company-settings-link-desc">Gateway, MCP, sessions, voice</span>
                   </span>
                 </button>
               </li>
             </ul>
           </section>
+
+          <details className="DAO-company-settings-panel DAO-company-settings-advanced">
+            <summary className="DAO-company-settings-advanced-summary">
+              <span>
+                <p className="DAO-company-settings-eyebrow">{SPACE_SECTIONS.voice.eyebrow}</p>
+                <span className="DAO-company-settings-title">{SPACE_SECTIONS.voice.summary}</span>
+              </span>
+              <AudioLines aria-hidden className="DAO-company-settings-advanced-icon" size={18} />
+            </summary>
+            <p className="DAO-company-settings-copy">{SPACE_SECTIONS.voice.blurb}</p>
+            <div className="DAO-company-settings-form">
+              <label className="DAO-company-settings-field DAO-company-settings-field--row">
+                <input
+                  checked={wake.enabled}
+                  onChange={(e) => setWakeWord({ enabled: e.target.checked })}
+                  type="checkbox"
+                />
+                <span>Enable wake word on Home</span>
+              </label>
+              <label className="DAO-company-settings-field">
+                <span>Picovoice AccessKey</span>
+                <input
+                  className="DAO-company-settings-input DAO-company-settings-input--mono"
+                  onChange={(e) => setWakeWord({ accessKey: e.target.value })}
+                  placeholder="From console.picovoice.ai"
+                  type="password"
+                  value={wake.accessKey}
+                />
+              </label>
+              <label className="DAO-company-settings-field">
+                <span>Built-in keyword</span>
+                <select
+                  className="DAO-company-settings-input"
+                  disabled={Boolean(wake.customPpnBase64)}
+                  onChange={(e) => setWakeWord({ builtin: e.target.value })}
+                  value={wake.builtin}
+                >
+                  {BUILTIN_WAKE_WORDS.map((word) => (
+                    <option key={word} value={word}>
+                      {word}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="DAO-company-settings-field">
+                <span>Custom keyword (.ppn)</span>
+                <input
+                  accept=".ppn"
+                  className="DAO-company-settings-input"
+                  onChange={(e) => onUploadPpn(e.target.files?.[0] ?? null)}
+                  type="file"
+                />
+              </label>
+              {wake.customPpnBase64 ? (
+                <p className="DAO-company-settings-copy">
+                  Using <strong>{wake.customLabel || "Custom keyword"}</strong>.{" "}
+                  <button
+                    className="underline"
+                    onClick={() => setWakeWord({ customPpnBase64: "", customLabel: "" })}
+                    type="button"
+                  >
+                    Use built-in instead
+                  </button>
+                </p>
+              ) : null}
+              {ppnError ? <p className="DAO-company-settings-error">{ppnError}</p> : null}
+              <label className="DAO-company-settings-field">
+                <span>Sensitivity — {Math.round(wake.sensitivity * 100)}%</span>
+                <input
+                  max={1}
+                  min={0}
+                  onChange={(e) => setWakeWord({ sensitivity: Number(e.target.value) })}
+                  step={0.05}
+                  type="range"
+                  value={wake.sensitivity}
+                />
+              </label>
+            </div>
+          </details>
         </div>
-      </CompanyScroll>
+  );
+
+  const content = embedded ? settingsGrid : <CompanyScroll>{settingsGrid}</CompanyScroll>;
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <DAOCompanyShell description={SPACE_SHELL.description} title={SPACE_SHELL.title}>
+      {content}
     </DAOCompanyShell>
   );
 }

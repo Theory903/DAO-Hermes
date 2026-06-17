@@ -13,6 +13,8 @@ from DAO.comms import events as event_bus
 from DAO.db import rls_connection
 from DAO.deps import current_user_id
 from DAO.exceptions import NotFoundError
+from DAO.objects.ingest import ingest_hitl_resolved
+from DAO.objects.repairs import infer_edges_safe
 
 router = APIRouter(prefix="/spaces/{space_id}/hitl", tags=["hitl"])
 
@@ -95,7 +97,17 @@ async def resolve_hitl(space_id: UUID, request_id: UUID, body: HitlResolve, requ
     status = body.resolved_status()
     if status not in ("approved", "rejected"):
         return {"error": "invalid status"}
-    async with rls_connection(space_id=space_id, user_id=current_user_id(request)) as conn:
+    uid = current_user_id(request)
+    drive_refs: list[UUID] = []
+    async with rls_connection(space_id=space_id, user_id=uid) as conn:
+        row = await conn.fetchrow(
+            "SELECT action_summary, drive_refs FROM hitl_requests WHERE space_id = $1 AND id = $2",
+            space_id,
+            request_id,
+        )
+        if not row:
+            raise NotFoundError("HITL request not found")
+        drive_refs = list(row["drive_refs"] or [])
         await conn.execute(
             """
             UPDATE hitl_requests SET status = $3, resolved_by = $4, resolved_at = $5
@@ -104,9 +116,28 @@ async def resolve_hitl(space_id: UUID, request_id: UUID, body: HitlResolve, requ
             space_id,
             request_id,
             status,
-            current_user_id(request),
+            uid,
             datetime.now(timezone.utc),
         )
+        await ingest_hitl_resolved(
+            conn,
+            space_id,
+            hitl_id=request_id,
+            action_summary=row["action_summary"],
+            status=status,
+            resolved_by=uid,
+        )
+
+    if drive_refs:
+        async with rls_connection(space_id=space_id, user_id=uid) as conn:
+            await infer_edges_safe(
+                conn,
+                space_id,
+                source_table="hitl_requests",
+                source_id=request_id,
+                drive_ref_ids=drive_refs,
+            )
+
     await event_bus.publish(
         space_id,
         "hitl_resolved",

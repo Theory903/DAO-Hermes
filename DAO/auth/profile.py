@@ -77,6 +77,10 @@ def merge_preferences(existing: Any, patch: dict[str, Any]) -> dict[str, Any]:
         cache = {**_as_dict(merged.get("greeting_cache")), **patch["greeting_cache"]}
         merged["greeting_cache"] = cache
 
+    if "home_focus_snooze" in patch and isinstance(patch["home_focus_snooze"], dict):
+        snooze = {**_as_dict(merged.get("home_focus_snooze")), **patch["home_focus_snooze"]}
+        merged["home_focus_snooze"] = snooze
+
     return merged
 
 

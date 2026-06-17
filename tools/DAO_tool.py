@@ -91,15 +91,25 @@ def DAO_navigate(
         if drive_path:
             payload["drive_path"] = drive_path.strip()
         if slug:
-            if screen_norm in ("wiki", "reports", "drive"):
-                href = f"/space/{slug}/brain?view={screen_norm}"
+            if screen_norm in ("wiki", "reports", "drive", "brain", "memory"):
+                view_map = {
+                    "wiki": "wiki",
+                    "reports": "reports",
+                    "drive": "drive",
+                    "brain": "truths",
+                    "memory": "search",
+                }
+                view = view_map[screen_norm]
+                href = f"/space/{slug}/memory?view={view}"
                 if screen_norm == "drive" and drive_path:
                     from urllib.parse import quote
 
                     href += f"&path={quote(drive_path.strip())}"
                 payload["href"] = href
             elif screen_norm == "command":
-                payload["href"] = f"/space/{slug}/org"
+                payload["href"] = f"/space/{slug}/work?view=operations"
+            elif screen_norm == "org":
+                payload["href"] = f"/space/{slug}/control?section=organization"
             elif screen_norm == "chat":
                 payload["href"] = "/"
             else:

@@ -63,6 +63,7 @@ export type SpaceEventPayload = {
 }
 
 export type BrainEntitySummary = {
+  id?: string
   slug: string
   title: string
   confidence?: number
@@ -134,4 +135,213 @@ export type Automation = {
   name: string
   enabled: boolean
   cron?: string
+}
+
+export type CompanyDna = {
+  mission: string
+  stage: string
+  north_star: string
+  archetype: string
+}
+
+export type OperatingMode = {
+  mode: 'growth' | 'execution' | 'learning' | 'recovery'
+  focus_label: string
+  confidence: number
+}
+
+export type OperatingState = {
+  label: string
+  tone: 'positive' | 'neutral' | 'warning'
+  subline?: string
+}
+
+export type FocusCard = {
+  id: string
+  kind: 'hitl' | 'recommend' | 'decision'
+  title: string
+  context: string
+  recommendation?: string | null
+  why_this_matters: string
+  impact?: string | null
+  time_estimate?: string | null
+  confidence?: number | null
+  tool_trace?: Record<string, unknown>
+  drive_refs?: string[]
+  object_id?: string
+}
+
+export type HomePulse = {
+  pending_hitl: number
+  handoffs_24h: number
+  drive_artifacts_24h: number
+  brain_entities: number
+  greeting?: string | null
+  greeting_subline?: string | null
+  greeting_kind?: string | null
+}
+
+export type MomentumRings = {
+  growth: number
+  execution: number
+  learning: number
+  autonomy: number
+}
+
+export type HeatmapDay = {
+  date: string
+  level: number
+  count: number
+}
+
+export type TimeMachinePoint = {
+  week_start: string
+  score: number
+  rings: MomentumRings
+  factors: string[]
+}
+
+export type StoryCard = {
+  kind: string
+  title: string
+  body: string
+  at?: string | null
+  object_id?: string
+  event_type?: string
+  importance?: number
+}
+
+export type InsightCard = {
+  title: string
+  body: string
+}
+
+export type CompanyStory = {
+  started: string
+  are: string
+  going: string
+  achievements: string[]
+  milestones?: string[]
+}
+
+export type MemorySearchHit = SpaceObject & {
+  match_rank?: number
+  drive_path?: string
+}
+
+export type WorkStream = {
+  object_id: string
+  object_type: string
+  title: string
+  status: string
+  verb: string
+  outcome_hint?: string | null
+  updated_at?: string | null
+}
+
+export type OperationLaneItem = {
+  object_id: string
+  title: string
+  object_type: string
+  event_type: string
+  headline: string
+  importance: number
+  at?: string | null
+}
+
+export type WorkActivityItem = {
+  id: string
+  object_id: string
+  object_type: string
+  object_title: string
+  event_type: string
+  importance: number
+  headline: string
+  actor: string
+  at?: string | null
+}
+
+export type WorkBundle = {
+  focus: FocusCard[]
+  focus_primary: FocusCard | null
+  also_attention: FocusCard[]
+  active_work: WorkStream[]
+  operations: {
+    verbs: Array<{ key: string; label: string }>
+    lanes: Record<string, OperationLaneItem[]>
+    window_hours: number
+  }
+  activity: WorkActivityItem[]
+  projects: Array<{
+    id: string
+    title: string
+    status: string
+    metadata?: Record<string, unknown>
+    updated_at?: string | null
+    created_at?: string | null
+  }>
+  floor: CommandSnapshot
+  generated_at: string
+}
+
+export type HomeBundle = {
+  dna: CompanyDna
+  pulse: HomePulse
+  operating_mode: OperatingMode
+  operating_state: OperatingState
+  focus_now: FocusCard | null
+  also_attention: FocusCard[]
+  winning_signals: string[]
+  momentum: {
+    score: number
+    score_delta_week: number | null
+    rings: MomentumRings
+    heatmap: HeatmapDay[]
+    time_machine: { points: TimeMachinePoint[] }
+  }
+  changed: StoryCard[]
+  learned: InsightCard[]
+  recommends: InsightCard[]
+  story: CompanyStory
+  generated_at: string
+}
+
+export type SpaceObject = {
+  id: string
+  space_id: string
+  object_type: string
+  title: string
+  status: string
+  metadata?: Record<string, unknown>
+  source_table?: string | null
+  source_id?: string | null
+  created_at?: string
+  updated_at?: string
+}
+
+export type ObjectEvent = {
+  id: string
+  object_id: string
+  event_type: string
+  importance: number
+  payload?: Record<string, unknown>
+  actor: string
+  created_at: string
+}
+
+export type ObjectEdge = {
+  id: string
+  from_object_id: string
+  to_object_id: string
+  edge_type: string
+  source: string
+  peer_title?: string
+  peer_type?: string
+  created_at?: string
+}
+
+export type ObjectBundle = {
+  object: SpaceObject
+  events: ObjectEvent[]
+  related: ObjectEdge[]
 }

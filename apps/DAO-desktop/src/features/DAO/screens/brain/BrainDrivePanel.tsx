@@ -18,7 +18,15 @@ import { cn } from '@/lib/utils'
 import { getDriveTree, searchDrive, uploadToDrive, type DriveObject } from '../../api/space-api'
 import { useSpaceContext } from '../../context/SpaceContext'
 import { useAsync } from '../../hooks/useAsync'
+import {
+  folderLabel,
+  listChildFolders,
+  normalizeDrivePath,
+  resolveFolderTarget,
+  visibleDriveObjects,
+} from '../../lib/drive-nav'
 import { CompanyBanner, CompanyEmpty, CompanyError, CompanyLoading } from '../_company-shell'
+import { BrainPanelGuide } from './BrainPanelGuide'
 
 function fileIcon(name: string) {
   const ext = name.split('.').pop()?.toLowerCase() ?? ''
@@ -34,7 +42,7 @@ function pathSegments(path: string): string[] {
 export function BrainDrivePanel() {
   const space = useSpaceContext()
   const [searchParams] = useSearchParams()
-  const initialPath = searchParams.get('path') ?? '/'
+  const initialPath = normalizeDrivePath(searchParams.get('path') ?? '/')
   const [path, setPath] = useState(initialPath)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<DriveObject[] | null>(null)
@@ -46,7 +54,10 @@ export function BrainDrivePanel() {
 
   useEffect(() => {
     const next = searchParams.get('path')
-    if (next && next !== path) setPath(next)
+    if (next) {
+      const normalized = normalizeDrivePath(next)
+      if (normalized !== path) setPath(normalized)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
@@ -86,8 +97,9 @@ export function BrainDrivePanel() {
     }
   }
 
-  const objects = results ?? tree.data?.objects ?? []
-  const folders = tree.data?.folders ?? []
+  const allObjects = tree.data?.objects ?? []
+  const objects = results ?? visibleDriveObjects(allObjects, path)
+  const folders = listChildFolders(tree.data?.folders ?? [], allObjects, path)
   const inSearch = results !== null
   const loading = tree.loading || searching
   const segments = pathSegments(path)
@@ -101,7 +113,9 @@ export function BrainDrivePanel() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="DAO-brain-panel-stack">
+      <BrainPanelGuide area="drive" />
+      <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -111,7 +125,7 @@ export function BrainDrivePanel() {
               setQuery(e.target.value)
               void runSearch(e.target.value)
             }}
-            placeholder="Search Drive…"
+            placeholder="Search files…"
             type="search"
             value={query}
           />
@@ -183,22 +197,19 @@ export function BrainDrivePanel() {
             <div>
               <p className="DAO-util-section-label mb-2">Folders</p>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {folders.map((folder) => {
-                  const next = path === '/' ? `/${folder}` : `${path.replace(/\/$/, '')}/${folder}`
-                  return (
+                {folders.map((folder) => (
                     <button
                       className="DAO-company-card flex items-center gap-3 text-left transition-colors hover:border-primary/30"
                       key={folder}
-                      onClick={() => setPath(next)}
+                      onClick={() => setPath(resolveFolderTarget(path, folder))}
                       type="button"
                     >
                       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Folder className="size-4" strokeWidth={1.6} />
                       </span>
-                      <span className="min-w-0 truncate font-medium">{folder}</span>
+                      <span className="min-w-0 truncate font-medium">{folderLabel(folder)}</span>
                     </button>
-                  )
-                })}
+                  ))}
               </div>
             </div>
           ) : null}
@@ -209,10 +220,10 @@ export function BrainDrivePanel() {
               <CompanyEmpty
                 description={
                   inSearch
-                    ? 'Try a different search, or clear to browse folders.'
-                    : 'Upload docs and research. Everything here feeds agent preflight and writeback.'
+                    ? 'Try different words, or clear search to browse folders.'
+                    : 'Upload research, brand assets, or spreadsheets. Agents also save outputs here after tasks.'
                 }
-                title={inSearch ? 'No matches' : 'No files here yet'}
+                title={inSearch ? 'No matches' : 'This folder is empty'}
               />
             ) : (
               <ul className="space-y-1.5">
@@ -244,6 +255,7 @@ export function BrainDrivePanel() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

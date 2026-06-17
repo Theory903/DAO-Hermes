@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Check, ChevronRight, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import {
 
 export function InboxScreen() {
   const space = useSpaceContext();
+  const [searchParams] = useSearchParams();
   const hitl = useAsync(() => listHitl(space.id, "pending"), [space.id]);
   const [busy, setBusy] = useState<string | null>(null);
   const [flash, setFlash] = useState<"approved" | "rejected" | null>(null);
@@ -34,6 +36,13 @@ export function InboxScreen() {
   const [selected, setSelected] = useState<HitlRequest | null>(null);
   const requests = hitl.data?.requests ?? [];
   const leadName = useLeadName();
+
+  useEffect(() => {
+    const hitlId = searchParams.get("id");
+    if (!hitlId || requests.length === 0) return;
+    const match = requests.find((req) => req.id === hitlId);
+    if (match) setSelected(match);
+  }, [requests, searchParams]);
 
   async function resolve(req: HitlRequest, decision: "approved" | "rejected") {
     setBusy(req.id);
